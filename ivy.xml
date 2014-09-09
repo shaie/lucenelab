@@ -18,34 +18,34 @@
    under the License.    
 -->
 <ivy-module version="2.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
-	
-	<info organisation="com.ibm" module="lucene-helper" revision="4.5.0.4" status="integration"/>
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+  
+  <info organisation="com.shaie" module="lucene-sandbox" revision="4.5.0.4" status="integration"/>
 
-	<publications>
-		<artifact name="${ivy.organisation}-${ivy.module}" type="jar" ext="jar"/>
-		<artifact name="${ivy.organisation}-${ivy.module}-sources" type="source" ext="jar"/>
-	</publications>
+  <publications>
+    <artifact name="${ivy.organisation}-${ivy.module}" type="jar" ext="jar"/>
+    <artifact name="${ivy.organisation}-${ivy.module}-sources" type="source" ext="jar"/>
+  </publications>
 
-	<dependencies>
-		<!-- external -->
-		<dependency org="org.apache.lucene" name="lucene-core" rev="4.10.0"/>
-		<dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="4.10.0"/>
+  <dependencies>
+    <!-- external -->
+    <dependency org="org.apache.lucene" name="lucene-core" rev="4.10.0"/>
+    <dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="4.10.0"/>
 <!--
-		<dependency org="org.apache.lucene" name="lucene-facet" rev="4.5.0" />
-		<dependency org="org.apache.lucene" name="lucene-highlighter" rev="4.5.0"/>
-		<dependency org="org.apache.lucene" name="lucene-queryparser" rev="4.5.0" />
+    <dependency org="org.apache.lucene" name="lucene-facet" rev="4.5.0" />
+    <dependency org="org.apache.lucene" name="lucene-highlighter" rev="4.5.0"/>
+    <dependency org="org.apache.lucene" name="lucene-queryparser" rev="4.5.0" />
 -->
-		<!--
-		<dependency org="com.google.guava" name="guava" rev="r09"/>
-		-->
+    <!--
+    <dependency org="com.google.guava" name="guava" rev="r09"/>
+    -->
 
-<!--		
-		<dependency org="commons-collections" name="commons-collections" rev="3.2.1"/>
-		<dependency org="org.apache.commons" name="commons-math3" rev="3.2"/>
--->		
-		<!-- test -->
-		<dependency org="junit" name="junit" rev="4.4" />
-	</dependencies>
+<!--    
+    <dependency org="commons-collections" name="commons-collections" rev="3.2.1"/>
+    <dependency org="org.apache.commons" name="commons-math3" rev="3.2"/>
+-->    
+    <!-- test -->
+    <dependency org="junit" name="junit" rev="4.4" />
+  </dependencies>
 </ivy-module>
