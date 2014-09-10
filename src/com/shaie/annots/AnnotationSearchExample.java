@@ -38,12 +38,14 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.spans.SpanQuery;
-import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
+
+import com.shaie.spans.SpanInclusivePositionTermQuery;
+import com.shaie.spans.SpanWithinQuery;
 
 /** Demonstrates searching on an indexed annotation with a {@link SpanQuery}. */
 public class AnnotationSearchExample {

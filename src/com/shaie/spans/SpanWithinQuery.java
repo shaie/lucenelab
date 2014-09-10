@@ -1,4 +1,4 @@
-package com.shaie.annots;
+package com.shaie.spans;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,7 +18,6 @@ package com.shaie.annots;
  */
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,34 +70,8 @@ public class SpanWithinQuery extends SpanQuery {
       final Map<Term,TermContext> termContexts) throws IOException {
     final Spans rangeSpans = range.getSpans(context, acceptDocs, termContexts);
     final Spans matchSpans = match.getSpans(context, acceptDocs, termContexts);
-    return new Spans() {
+    return new FilterSpans(rangeSpans) {
       private boolean moreRange = true, moreMatch = true;
-      
-      @Override
-      public long cost() {
-        return rangeSpans.cost();
-      }
-
-      @Override
-      public int doc() {
-        return rangeSpans.doc();
-      }
-
-      @Override
-      public int end() {
-        return rangeSpans.end();
-      }
-
-      @Override
-      public Collection<byte[]> getPayload() throws IOException {
-        return rangeSpans.getPayload();
-      }
-
-      @Override
-      public boolean isPayloadAvailable() throws IOException {
-        return rangeSpans.isPayloadAvailable();
-      }
-
       @Override
       public boolean next() throws IOException {
         if (moreRange) {
@@ -143,11 +116,6 @@ public class SpanWithinQuery extends SpanQuery {
         
         // both matchSpans and rangeSpans have a document on or after 'target'
         return next();
-      }
-
-      @Override
-      public int start() {
-        return rangeSpans.start();
       }
 
       @Override

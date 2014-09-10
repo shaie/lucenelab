@@ -1,4 +1,4 @@
-package com.shaie.annots;
+package com.shaie.spans;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -44,46 +44,10 @@ public class SpanInclusivePositionTermQuery extends SpanTermQuery {
   public Spans getSpans(AtomicReaderContext context, Bits acceptDocs, Map<Term,TermContext> termContexts)
       throws IOException {
     final Spans spans = super.getSpans(context, acceptDocs, termContexts);
-    return new Spans() {
-      
-      @Override
-      public int start() {
-        return spans.start();
-      }
-      
-      @Override
-      public boolean skipTo(int target) throws IOException {
-        return spans.skipTo(target);
-      }
-      
-      @Override
-      public boolean next() throws IOException {
-        return spans.next();
-      }
-      
-      @Override
-      public boolean isPayloadAvailable() throws IOException {
-        return spans.isPayloadAvailable();
-      }
-      
-      @Override
-      public Collection<byte[]> getPayload() throws IOException {
-        return spans.getPayload();
-      }
-      
+    return new FilterSpans(spans) {
       @Override
       public int end() {
-        return spans.end() - 1;
-      }
-      
-      @Override
-      public int doc() {
-        return spans.doc();
-      }
-      
-      @Override
-      public long cost() {
-        return spans.cost();
+        return in.end() - 1;
       }
     };
   }
