@@ -1,4 +1,4 @@
-package com.shaie.annotts;
+package com.shaie.annots;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more

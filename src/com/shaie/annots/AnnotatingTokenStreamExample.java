@@ -1,4 +1,4 @@
-package com.shaie.annotts;
+package com.shaie.annots;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,14 +29,16 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.util.BytesRef;
 
-/** Demonstrates {@link ColorAnnotatingTokenFilter}. */
+/** Demonstrates {@link AnnotatingTokenFilter}. */
 public class AnnotatingTokenStreamExample {
-  
+
+  public static final String COLOR_ANNOT_TERM = "color";
+
   public static void main(String[] args) throws Exception {
     String text = "quick brown fox ate the blue red chicken";
     Tokenizer tokenizer = new WhitespaceTokenizer(new StringReader(text));
     TeeSinkTokenFilter teeSink = new TeeSinkTokenFilter(tokenizer);
-    TokenStream colors = new ColorAnnotatingTokenFilter(teeSink.newSinkTokenStream(new ColorsSinkFilter()));
+    TokenStream colors = new AnnotatingTokenFilter(teeSink.newSinkTokenStream(new ColorsSinkFilter()), COLOR_ANNOT_TERM);
     
     System.out.println("Text tokens:\n");
     

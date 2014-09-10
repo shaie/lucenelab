@@ -1,4 +1,4 @@
-package com.shaie.annotts;
+package com.shaie.annots;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,25 +27,24 @@ import org.apache.lucene.store.ByteArrayDataOutput;
 import org.apache.lucene.util.BytesRef;
 
 /**
- * A {@link TokenFilter} which returns a single color annotation
- * {@link ColorAnnotatingTokenFilter#COLOR_ANNOT_TERM term}, with a
+ * A {@link TokenFilter} which returns a single annotation term, with a
  * {@link PayloadAttribute} which records the start position of the annotation
- * (in the original text) as well as its length).
+ * (in the original text) as well as its length.
  */
-public final class ColorAnnotatingTokenFilter extends TokenFilter {
-
-  public static final String COLOR_ANNOT_TERM = "color";
+public final class AnnotatingTokenFilter extends TokenFilter {
   
   private final CharTermAttribute termAtt = getAttribute(CharTermAttribute.class);
   private final AnnotationSpanAttribute annotSpanAtt = addAttribute(AnnotationSpanAttribute.class);
   private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
   private final BytesRef payload = new BytesRef(10); // max 5 bytes per VInt
   private final ByteArrayDataOutput out = new ByteArrayDataOutput();
+  private final String term;
   
   /** Sole constructor. */
-  public ColorAnnotatingTokenFilter(TokenStream input) {
+  public AnnotatingTokenFilter(TokenStream input, String term) {
     super(input);
     payloadAtt.setPayload(payload);
+    this.term = term;
   }
   
   @Override
@@ -53,7 +52,7 @@ public final class ColorAnnotatingTokenFilter extends TokenFilter {
     if (!input.incrementToken()) return false; // no more tokens
     
     // update the payload with the annotation span.
-    termAtt.setEmpty().append(COLOR_ANNOT_TERM);
+    termAtt.setEmpty().append(term);
     out.reset(payload.bytes);
     out.writeVInt(annotSpanAtt.getStart());
     out.writeVInt(annotSpanAtt.getLength());

@@ -1,4 +1,4 @@
-package com.shaie.annotts;
+package com.shaie.annots;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,7 +18,6 @@ package com.shaie.annotts;
  */
 
 import org.apache.lucene.util.Attribute;
-import org.apache.lucene.util.AttributeImpl;
 
 /**
  * An {@link Attribute} which records the start of an annotation and its
@@ -26,39 +25,6 @@ import org.apache.lucene.util.AttributeImpl;
  */
 public interface AnnotationSpanAttribute extends Attribute {
 
-  /** An {@link AnnotationSpanAttribute} implementation. */
-  public static final class AnnotationSpanAttributeImpl extends AttributeImpl implements AnnotationSpanAttribute {
-
-    private int start, length;
-    
-    @Override
-    public void setSpan(int start, int length) {
-      this.start = start;
-      this.length = length;
-    }
-
-    @Override
-    public int getStart() {
-      return start;
-    }
-
-    @Override
-    public int getLength() {
-      return length;
-    }
-
-    @Override
-    public void clear() {
-      start = length = -1;
-    }
-
-    @Override
-    public void copyTo(AttributeImpl target) {
-      ((AnnotationSpanAttributeImpl) target).setSpan(start, length);
-    }
-    
-  }
-  
   /** Set the annotation's span attributes. */
   public void setSpan(int start, int length);
   
