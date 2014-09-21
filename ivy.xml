@@ -17,6 +17,9 @@
    specific language governing permissions and limitations
    under the License.    
 -->
+<!DOCTYPE ivy-module [
+    <!ENTITY lucene.version "4.10.0">
+]>
 <ivy-module version="2.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
@@ -30,8 +33,8 @@
 
   <dependencies>
     <!-- external -->
-    <dependency org="org.apache.lucene" name="lucene-core" rev="4.10.0"/>
-    <dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="4.10.0"/>
+    <dependency org="org.apache.lucene" name="lucene-core" rev="&lucene.version;"/>
+    <dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="&lucene.version;"/>
 <!--
     <dependency org="org.apache.lucene" name="lucene-facet" rev="4.5.0" />
     <dependency org="org.apache.lucene" name="lucene-highlighter" rev="4.5.0"/>
