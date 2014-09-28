@@ -24,7 +24,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
   
-  <info organisation="com.shaie" module="lucene-sandbox" revision="4.5.0.4" status="integration"/>
+  <info organisation="com.shaie" module="lucene-sandbox" revision="0.1" status="integration"/>
 
   <publications>
     <artifact name="${ivy.organisation}-${ivy.module}" type="jar" ext="jar"/>
@@ -35,19 +35,12 @@
     <!-- external -->
     <dependency org="org.apache.lucene" name="lucene-core" rev="&lucene.version;"/>
     <dependency org="org.apache.lucene" name="lucene-analyzers-common" rev="&lucene.version;"/>
-<!--
-    <dependency org="org.apache.lucene" name="lucene-facet" rev="4.5.0" />
-    <dependency org="org.apache.lucene" name="lucene-highlighter" rev="4.5.0"/>
-    <dependency org="org.apache.lucene" name="lucene-queryparser" rev="4.5.0" />
--->
-    <!--
-    <dependency org="com.google.guava" name="guava" rev="r09"/>
-    -->
+    <dependency org="org.apache.lucene" name="lucene-sandbox" rev="&lucene.version;"/>
+    <dependency org="org.apache.lucene" name="lucene-queries" rev="&lucene.version;"/>
+    <dependency org="org.apache.lucene" name="lucene-queryparser" rev="&lucene.version;"/>
 
-<!--    
-    <dependency org="commons-collections" name="commons-collections" rev="3.2.1"/>
-    <dependency org="org.apache.commons" name="commons-math3" rev="3.2"/>
--->    
+    <dependency org="jakarta-regexp" name="jakarta-regexp" rev="1.4"/>
+
     <!-- test -->
     <dependency org="junit" name="junit" rev="4.4" />
   </dependencies>
