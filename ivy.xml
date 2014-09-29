@@ -24,7 +24,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
   
-  <info organisation="com.shaie" module="lucene-sandbox" revision="0.1" status="integration"/>
+  <info organisation="com.shaie" module="lucenelab" revision="0.1" status="integration"/>
 
   <publications>
     <artifact name="${ivy.organisation}-${ivy.module}" type="jar" ext="jar"/>
