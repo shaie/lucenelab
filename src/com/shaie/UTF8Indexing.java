@@ -1,7 +1,5 @@
 package com.shaie;
 
-import java.io.IOException;
-
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
@@ -9,12 +7,10 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,31 +31,31 @@ import org.apache.lucene.util.Version;
 
 public class UTF8Indexing {
 
-  private static void search(IndexSearcher searcher, QueryParser qp, String text) throws Exception {
-    System.out.println("search for [" + text + "]: " + searcher.search(qp.parse(text), 10).totalHits);
-  }
-  
-  public static void main(String[] args) throws Exception {
-    Directory dir = new RAMDirectory();
-    StandardAnalyzer analyzer = new StandardAnalyzer();
-    IndexWriterConfig conf = new IndexWriterConfig(Version.LUCENE_4_10_0, analyzer);
-    IndexWriter writer = new IndexWriter(dir, conf);
-    
-    Document doc = new Document();
-    doc.add(new TextField("f", "Russia\u2013United States relations", Store.YES));
-    writer.addDocument(doc);
-    writer.close();
-    
-    DirectoryReader reader = DirectoryReader.open(dir);
-    IndexSearcher searcher = new IndexSearcher(reader);
-    QueryParser qp = new QueryParser("f", analyzer);
-    search(searcher, qp, "Russia United States relations");
-    search(searcher, qp, "\"Russia United states relations\"");
-    search(searcher, qp, "\"Russia-United states relations\"");
-    search(searcher, qp, "\"Russia\u2013United states relations\"");
-    reader.close();
-    
-    dir.close();
-  }
-  
+    private static void search(IndexSearcher searcher, QueryParser qp, String text) throws Exception {
+        System.out.println("search for [" + text + "]: " + searcher.search(qp.parse(text), 10).totalHits);
+    }
+
+    public static void main(String[] args) throws Exception {
+        Directory dir = new RAMDirectory();
+        StandardAnalyzer analyzer = new StandardAnalyzer();
+        IndexWriterConfig conf = new IndexWriterConfig(Constants.VERSTION, analyzer);
+        IndexWriter writer = new IndexWriter(dir, conf);
+
+        Document doc = new Document();
+        doc.add(new TextField("f", "Russia\u2013United States relations", Store.YES));
+        writer.addDocument(doc);
+        writer.close();
+
+        DirectoryReader reader = DirectoryReader.open(dir);
+        IndexSearcher searcher = new IndexSearcher(reader);
+        QueryParser qp = new QueryParser("f", analyzer);
+        search(searcher, qp, "Russia United States relations");
+        search(searcher, qp, "\"Russia United states relations\"");
+        search(searcher, qp, "\"Russia-United states relations\"");
+        search(searcher, qp, "\"Russia\u2013United states relations\"");
+        reader.close();
+
+        dir.close();
+    }
+
 }

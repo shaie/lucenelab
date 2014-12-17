@@ -23,7 +23,6 @@ import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.Version;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -44,69 +43,76 @@ import org.apache.lucene.util.Version;
 
 public class PhraseVsSpanQuery {
 
-  public static void main(String[] args) throws Exception {
-    Directory dir = new RAMDirectory();
-    IndexWriterConfig conf = new IndexWriterConfig(Version.LUCENE_4_10_0, new WhitespaceAnalyzer());
-    IndexWriter writer = new IndexWriter(dir, conf);
-    
-    Document doc = new Document();
-    doc.add(new TextField("f", new TokenStream() {
-      final PositionIncrementAttribute pos = addAttribute(PositionIncrementAttribute.class);
-      final CharTermAttribute term = addAttribute(CharTermAttribute.class);
-      boolean first = true, done = false;
-      @Override
-      public boolean incrementToken() throws IOException {
-        if (done) return false;
-        if (first) {
-          term.setEmpty().append("a");
-          pos.setPositionIncrement(1);
-          first = false;
-        } else {
-          term.setEmpty().append("b");
-          pos.setPositionIncrement(0);
-          done = true;
+    public static void main(String[] args) throws Exception {
+        Directory dir = new RAMDirectory();
+        IndexWriterConfig conf = new IndexWriterConfig(Constants.VERSTION, new WhitespaceAnalyzer());
+        IndexWriter writer = new IndexWriter(dir, conf);
+
+        Document doc = new Document();
+        doc.add(new TextField("f", new TokenStream() {
+            final PositionIncrementAttribute pos = addAttribute(PositionIncrementAttribute.class);
+            final CharTermAttribute term = addAttribute(CharTermAttribute.class);
+            boolean first = true, done = false;
+
+            @Override
+            public boolean incrementToken() throws IOException {
+                if (done) {
+                    return false;
+                }
+                if (first) {
+                    term.setEmpty().append("a");
+                    pos.setPositionIncrement(1);
+                    first = false;
+                } else {
+                    term.setEmpty().append("b");
+                    pos.setPositionIncrement(0);
+                    done = true;
+                }
+                return true;
+            }
+        }));
+        writer.addDocument(doc);
+        writer.close();
+
+        DirectoryReader reader = DirectoryReader.open(dir);
+        IndexSearcher searcher = new IndexSearcher(reader);
+        AtomicReader ar = reader.leaves().get(0).reader();
+        TermsEnum te = ar.terms("f").iterator(null);
+        BytesRef scratch = new BytesRef();
+        while ((scratch = te.next()) != null) {
+            System.out.println(scratch.utf8ToString());
+            DocsAndPositionsEnum dape = ar.termPositionsEnum(new Term("f", scratch.utf8ToString()));
+            System.out.println("  doc=" + dape.nextDoc() + ", pos=" + dape.nextPosition());
         }
-        return true;
-      }
-    }));
-    writer.addDocument(doc);
-    writer.close();
-    
-    DirectoryReader reader = DirectoryReader.open(dir);
-    IndexSearcher searcher = new IndexSearcher(reader);
-    AtomicReader ar = reader.leaves().get(0).reader();
-    TermsEnum te = ar.terms("f").iterator(null);
-    BytesRef scratch = new BytesRef();
-    while ((scratch = te.next()) != null) {
-      System.out.println(scratch.utf8ToString());
-      DocsAndPositionsEnum dape = ar.termPositionsEnum(new Term("f", scratch.utf8ToString()));
-      System.out.println("  doc=" + dape.nextDoc() + ", pos=" + dape.nextPosition());
+
+        System.out.println();
+
+        // try a phrase query with a slop
+        PhraseQuery pq = new PhraseQuery();
+        pq.add(new Term("f", "a"));
+        pq.add(new Term("f", "b"));
+
+        System.out.println("searching for \"a b\"; num results = " + searcher.search(pq, 10).totalHits);
+
+        pq.setSlop(1);
+        System.out.println("searching for \"a b\"~1; num results = " + searcher.search(pq, 10).totalHits);
+
+        pq.setSlop(3);
+        System.out.println("searching for \"a b\"~3; num results = " + searcher.search(pq, 10).totalHits);
+
+        SpanNearQuery snqUnOrdered = new SpanNearQuery(new SpanQuery[] { new SpanTermQuery(new Term("f", "a")),
+                new SpanTermQuery(new Term("f", "b")) }, 1, false);
+        System.out.println("searching for SpanNearUnordered('a', 'b'), slop=1; num results = "
+                + searcher.search(snqUnOrdered, 10).totalHits);
+
+        SpanNearQuery snqOrdered = new SpanNearQuery(new SpanQuery[] { new SpanTermQuery(new Term("f", "a")),
+                new SpanTermQuery(new Term("f", "b")) }, 1, true);
+        System.out.println("searching for SpanNearOrdered('a', 'b'), slop=1; num results = "
+                + searcher.search(snqOrdered, 10).totalHits);
+
+        reader.close();
+
+        dir.close();
     }
-    
-    System.out.println();
-    
-    // try a phrase query with a slop
-    PhraseQuery pq = new PhraseQuery();
-    pq.add(new Term("f", "a"));
-    pq.add(new Term("f", "b"));
-    
-    System.out.println("searching for \"a b\"; num results = " + searcher.search(pq, 10).totalHits);
-    
-    pq.setSlop(1);
-    System.out.println("searching for \"a b\"~1; num results = " + searcher.search(pq, 10).totalHits);
-    
-    pq.setSlop(3);
-    System.out.println("searching for \"a b\"~3; num results = " + searcher.search(pq, 10).totalHits);
-    
-    SpanNearQuery snqUnOrdered = new SpanNearQuery(new SpanQuery[] { new SpanTermQuery(new Term("f", "a")), new SpanTermQuery(new Term("f", "b"))}, 1, false);
-    System.out.println("searching for SpanNearUnordered('a', 'b'), slop=1; num results = " + searcher.search(snqUnOrdered, 10).totalHits);
-    
-    SpanNearQuery snqOrdered = new SpanNearQuery(new SpanQuery[] { new SpanTermQuery(new Term("f", "a")), new SpanTermQuery(new Term("f", "b"))}, 1, true);
-    System.out.println("searching for SpanNearOrdered('a', 'b'), slop=1; num results = " + searcher.search(snqOrdered, 10).totalHits);
-    
-    reader.close();
-    
-    dir.close();
-  }
 
 }

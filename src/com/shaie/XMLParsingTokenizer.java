@@ -19,7 +19,6 @@ import org.apache.lucene.util.Attribute;
 import org.apache.lucene.util.AttributeFactory;
 import org.apache.lucene.util.AttributeImpl;
 import org.apache.lucene.util.AttributeSource;
-import org.xml.sax.SAXException;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -40,124 +39,129 @@ import org.xml.sax.SAXException;
 
 public final class XMLParsingTokenizer extends Tokenizer {
 
-  public static final String TYPE_TAG_START = "TAG_START";
-  public static final String TYPE_TAG_END = "TAG_END";
-  public static final String TYPE_TOKEN = "TOKEN";
-  
-  private final XMLInputFactory xmlFactory;
-  private XMLStreamReader xmlReader;
-  
-  private final Tokenizer textTokenizer;
-  
-  private final TypeAttribute typeAtt = addAttribute(TypeAttribute.class);;
-  private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);;
-  
-  private boolean consumeText = false;
-  
-  /** Make this Tokenizer get attributes from the delegate token stream. */
-  private static final AttributeFactory delegatingAttributeFactory(final AttributeSource source) {
-    return new AttributeFactory() {
-      @Override
-      public AttributeImpl createAttributeInstance(Class<? extends Attribute> attClass) {
-        return (AttributeImpl) source.addAttribute(attClass);
-      }
-    };
-  }
+    public static final String TYPE_TAG_START = "TAG_START";
+    public static final String TYPE_TAG_END = "TAG_END";
+    public static final String TYPE_TOKEN = "TOKEN";
 
-  public XMLParsingTokenizer(Tokenizer textTokenizer, Reader input) throws XMLStreamException {
-    super(delegatingAttributeFactory(textTokenizer), input);
-    xmlFactory = XMLInputFactory.newFactory();
-    this.textTokenizer = textTokenizer;
-  }
-  
-  @Override
-  public boolean incrementToken() throws IOException {
-    clearAttributes();
-    if (consumeText) {
-      if (!textTokenizer.incrementToken()) {
-        consumeText = false;
-      } else {
-        typeAtt.setType(TYPE_TOKEN);
-        return true;
-      }
-    }
-    
-    try {
-      if (!xmlReader.hasNext()) return false;
+    private final XMLInputFactory xmlFactory;
+    private XMLStreamReader xmlReader;
 
-      final int event = xmlReader.next();
-      switch (event) {
-        case XMLStreamConstants.START_ELEMENT:
-          typeAtt.setType(TYPE_TAG_START);
-          termAtt.setEmpty().append(xmlReader.getLocalName());
-          break;
-        case XMLStreamConstants.END_ELEMENT:
-          typeAtt.setType(TYPE_TAG_END);
-          termAtt.setEmpty().append(xmlReader.getLocalName());
-          break;
-        case XMLStreamConstants.CHARACTERS:
-          textTokenizer.setReader(new CharArrayReader(xmlReader.getTextCharacters(), xmlReader.getTextStart(), xmlReader.getTextLength()));
-          textTokenizer.reset();
-          typeAtt.setType(TYPE_TOKEN);
-          consumeText = true;
-          return incrementToken();
-        case XMLStreamConstants.END_DOCUMENT:
-          return false;
-        default:
-          System.out.println("unhandled event: " + event);
-      }
-      return true;
-    } catch (XMLStreamException e) {
-      throw new IOException(e);
-    }
-  }
-  
-  @Override
-  public void reset() throws IOException {
-    super.reset();
-    try {
-      xmlReader = xmlFactory.createXMLStreamReader(input);
-      textTokenizer.reset();
-    } catch (XMLStreamException e) {
-      throw new IOException(e);
-    }
-  }
+    private final Tokenizer textTokenizer;
 
-  @Override
-  public void end() throws IOException {
-    try {
-      textTokenizer.end();
-    } finally {
-      super.end();
+    private final TypeAttribute typeAtt = addAttribute(TypeAttribute.class);;
+    private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);;
+
+    private boolean consumeText = false;
+
+    /** Make this Tokenizer get attributes from the delegate token stream. */
+    private static final AttributeFactory delegatingAttributeFactory(final AttributeSource source) {
+        return new AttributeFactory() {
+            @Override
+            public AttributeImpl createAttributeInstance(Class<? extends Attribute> attClass) {
+                return (AttributeImpl) source.addAttribute(attClass);
+            }
+        };
     }
-  }
-  
-  @Override
-  public void close() throws IOException {
-    try {
-      xmlReader.close();
-    } catch (XMLStreamException e) {
-      throw new IOException(e);
-    } finally {
-      try {
-        textTokenizer.close();
-      } finally {
-        super.close();
-      }
+
+    public XMLParsingTokenizer(Tokenizer textTokenizer, Reader input) {
+        super(delegatingAttributeFactory(textTokenizer), input);
+        xmlFactory = XMLInputFactory.newFactory();
+        this.textTokenizer = textTokenizer;
     }
-  }
-  
-  public static void main(String[] args) throws Exception, SAXException {
-    XMLParsingTokenizer tokenizer = new XMLParsingTokenizer(new WhitespaceTokenizer(new StringReader("")), new StringReader("<foo>this is the content</foo>"));
-    tokenizer.reset();
-    TypeAttribute typeAtt = tokenizer.addAttribute(TypeAttribute.class);
-    CharTermAttribute termAtt = tokenizer.addAttribute(CharTermAttribute.class);
-    PositionIncrementAttribute posIncrAtt = tokenizer.addAttribute(PositionIncrementAttribute.class);
-    while (tokenizer.incrementToken()) {
-      System.out.println("term=" + termAtt + ", type=" + typeAtt.type() + ", posIncr=" + posIncrAtt.getPositionIncrement());
+
+    @Override
+    public boolean incrementToken() throws IOException {
+        clearAttributes();
+        if (consumeText) {
+            if (!textTokenizer.incrementToken()) {
+                consumeText = false;
+            } else {
+                typeAtt.setType(TYPE_TOKEN);
+                return true;
+            }
+        }
+
+        try {
+            if (!xmlReader.hasNext()) {
+                return false;
+            }
+
+            final int event = xmlReader.next();
+            switch (event) {
+            case XMLStreamConstants.START_ELEMENT:
+                typeAtt.setType(TYPE_TAG_START);
+                termAtt.setEmpty().append(xmlReader.getLocalName());
+                break;
+            case XMLStreamConstants.END_ELEMENT:
+                typeAtt.setType(TYPE_TAG_END);
+                termAtt.setEmpty().append(xmlReader.getLocalName());
+                break;
+            case XMLStreamConstants.CHARACTERS:
+                textTokenizer.setReader(new CharArrayReader(xmlReader.getTextCharacters(), xmlReader.getTextStart(),
+                        xmlReader.getTextLength()));
+                textTokenizer.reset();
+                typeAtt.setType(TYPE_TOKEN);
+                consumeText = true;
+                return incrementToken();
+            case XMLStreamConstants.END_DOCUMENT:
+                return false;
+            default:
+                System.out.println("unhandled event: " + event);
+            }
+            return true;
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
     }
-    tokenizer.end();
-    tokenizer.close();
-  }
+
+    @Override
+    public void reset() throws IOException {
+        super.reset();
+        try {
+            xmlReader = xmlFactory.createXMLStreamReader(input);
+            textTokenizer.reset();
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
+    }
+
+    @Override
+    public void end() throws IOException {
+        try {
+            textTokenizer.end();
+        } finally {
+            super.end();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            xmlReader.close();
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        } finally {
+            try {
+                textTokenizer.close();
+            } finally {
+                super.close();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        XMLParsingTokenizer tokenizer = new XMLParsingTokenizer(new WhitespaceTokenizer(new StringReader("")),
+                new StringReader("<foo>this is the content</foo>"));
+        tokenizer.reset();
+        TypeAttribute typeAtt = tokenizer.addAttribute(TypeAttribute.class);
+        CharTermAttribute termAtt = tokenizer.addAttribute(CharTermAttribute.class);
+        PositionIncrementAttribute posIncrAtt = tokenizer.addAttribute(PositionIncrementAttribute.class);
+        while (tokenizer.incrementToken()) {
+            System.out.println("term=" + termAtt + ", type=" + typeAtt.type() + ", posIncr="
+                    + posIncrAtt.getPositionIncrement());
+        }
+        tokenizer.end();
+        tokenizer.close();
+    }
 
 }
