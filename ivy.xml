@@ -18,7 +18,7 @@
    under the License.    
 -->
 <!DOCTYPE ivy-module [
-    <!ENTITY lucene.version "4.10.1">
+    <!ENTITY lucene.version "4.10.2">
 ]>
 <ivy-module version="2.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -38,6 +38,7 @@
     <dependency org="org.apache.lucene" name="lucene-sandbox" rev="&lucene.version;"/>
     <dependency org="org.apache.lucene" name="lucene-queries" rev="&lucene.version;"/>
     <dependency org="org.apache.lucene" name="lucene-queryparser" rev="&lucene.version;"/>
+    <dependency org="org.apache.lucene" name="lucene-test-framework" rev="&lucene.version;"/>
 
     <dependency org="jakarta-regexp" name="jakarta-regexp" rev="1.4"/>
 
