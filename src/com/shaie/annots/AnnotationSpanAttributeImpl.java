@@ -22,32 +22,32 @@ import org.apache.lucene.util.AttributeImpl;
 /** An {@link AnnotationSpanAttribute} implementation. */
 public final class AnnotationSpanAttributeImpl extends AttributeImpl implements AnnotationSpanAttribute {
 
-  private int start, length;
-  
-  @Override
-  public void setSpan(int start, int length) {
-    this.start = start;
-    this.length = length;
-  }
+    private int start, length;
 
-  @Override
-  public int getStart() {
-    return start;
-  }
+    @Override
+    public void setSpan(int start, int length) {
+        this.start = start;
+        this.length = length;
+    }
 
-  @Override
-  public int getLength() {
-    return length;
-  }
+    @Override
+    public int getStart() {
+        return start;
+    }
 
-  @Override
-  public void clear() {
-    start = length = -1;
-  }
+    @Override
+    public int getLength() {
+        return length;
+    }
 
-  @Override
-  public void copyTo(AttributeImpl target) {
-    ((AnnotationSpanAttributeImpl) target).setSpan(start, length);
-  }
-  
+    @Override
+    public void clear() {
+        start = length = -1;
+    }
+
+    @Override
+    public void copyTo(AttributeImpl target) {
+        ((AnnotationSpanAttributeImpl) target).setSpan(start, length);
+    }
+
 }

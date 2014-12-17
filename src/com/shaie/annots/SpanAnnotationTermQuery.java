@@ -30,76 +30,78 @@ import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.util.Bits;
 
 /**
- * A {@link SpanTermQuery} which returns a {@link Spans} whose
- * {@link Spans#start()} and {@link Spans#end()} are read from a payload, while
- * the term's actual position is ignored.
+ * A {@link SpanTermQuery} which returns a {@link Spans} whose {@link Spans#start()} and {@link Spans#end()} are read
+ * from a payload, while the term's actual position is ignored.
  */
 public class SpanAnnotationTermQuery extends SpanTermQuery {
 
-  /**
-   * Construct a {@link SpanAnnotationTermQuery} matching the given term's
-   * spans. The term is assumed to have positions indexed with payload by
-   * {@link AnnotatingTokenFilter}, which records the start and end
-   * position of this annotation.
-   */
-  public SpanAnnotationTermQuery(Term term) {
-    super(term);
-  }
-  
-  @Override
-  public Spans getSpans(AtomicReaderContext context, Bits acceptDocs, Map<Term, TermContext> termContexts) 
-      throws IOException {
-    final Spans spans = super.getSpans(context, acceptDocs, termContexts);
-    return new Spans() {
-      private int start, end;
-      final ByteArrayDataInput in = new ByteArrayDataInput();
-      
-      @Override
-      public int start() {
-        return start;
-      }
-      
-      @Override
-      public boolean skipTo(int target) throws IOException {
-        return spans.skipTo(target);
-      }
-      
-      @Override
-      public boolean next() throws IOException {
-        if (!spans.next()) return false;
-        if (!isPayloadAvailable()) return next();
-        byte[] payload = getPayload().iterator().next();
-        in.reset(payload);
-        start = in.readVInt();
-        end = in.readVInt() + start - 1; // end is inclusive
-        return true;
-      }
-      
-      @Override
-      public boolean isPayloadAvailable() throws IOException {
-        return spans.isPayloadAvailable();
-      }
-      
-      @Override
-      public Collection<byte[]> getPayload() throws IOException {
-        return spans.getPayload();
-      }
-      
-      @Override
-      public int end() {
-        return end;
-      }
-      
-      @Override
-      public int doc() {
-        return spans.doc();
-      }
-      
-      @Override
-      public long cost() {
-        return spans.cost();
-      }
-    };
-  }
+    /**
+     * Construct a {@link SpanAnnotationTermQuery} matching the given term's spans. The term is assumed to have
+     * positions indexed with payload by {@link AnnotatingTokenFilter}, which records the start and end position of this
+     * annotation.
+     */
+    public SpanAnnotationTermQuery(Term term) {
+        super(term);
+    }
+
+    @Override
+    public Spans getSpans(AtomicReaderContext context, Bits acceptDocs, Map<Term, TermContext> termContexts)
+            throws IOException {
+        final Spans spans = super.getSpans(context, acceptDocs, termContexts);
+        return new Spans() {
+            private int start, end;
+            final ByteArrayDataInput in = new ByteArrayDataInput();
+
+            @Override
+            public int start() {
+                return start;
+            }
+
+            @Override
+            public boolean skipTo(int target) throws IOException {
+                return spans.skipTo(target);
+            }
+
+            @Override
+            public boolean next() throws IOException {
+                if (!spans.next()) {
+                    return false;
+                }
+                if (!isPayloadAvailable()) {
+                    return next();
+                }
+                byte[] payload = getPayload().iterator().next();
+                in.reset(payload);
+                start = in.readVInt();
+                end = in.readVInt() + start - 1; // end is inclusive
+                return true;
+            }
+
+            @Override
+            public boolean isPayloadAvailable() throws IOException {
+                return spans.isPayloadAvailable();
+            }
+
+            @Override
+            public Collection<byte[]> getPayload() throws IOException {
+                return spans.getPayload();
+            }
+
+            @Override
+            public int end() {
+                return end;
+            }
+
+            @Override
+            public int doc() {
+                return spans.doc();
+            }
+
+            @Override
+            public long cost() {
+                return spans.cost();
+            }
+        };
+    }
 
 }

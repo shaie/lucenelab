@@ -1,7 +1,6 @@
 package com.shaie.spans;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 
 import org.apache.lucene.index.AtomicReaderContext;
@@ -30,26 +29,25 @@ import org.apache.lucene.util.Bits;
  */
 
 /**
- * A {@link SpanTermQuery} which returns an inclusive {@link Spans}, that is
- * {@link Spans#end()} returns the term's position inclusive, rather than like
- * {@link TermSpans} which return 1 greater than the position.
+ * A {@link SpanTermQuery} which returns an inclusive {@link Spans}, that is {@link Spans#end()} returns the term's
+ * position inclusive, rather than like {@link TermSpans} which return 1 greater than the position.
  */
 public class SpanInclusivePositionTermQuery extends SpanTermQuery {
 
-  public SpanInclusivePositionTermQuery(Term term) {
-    super(term);
-  }
+    public SpanInclusivePositionTermQuery(Term term) {
+        super(term);
+    }
 
-  @Override
-  public Spans getSpans(AtomicReaderContext context, Bits acceptDocs, Map<Term,TermContext> termContexts)
-      throws IOException {
-    final Spans spans = super.getSpans(context, acceptDocs, termContexts);
-    return new FilterSpans(spans) {
-      @Override
-      public int end() {
-        return in.end() - 1;
-      }
-    };
-  }
-  
+    @Override
+    public Spans getSpans(AtomicReaderContext context, Bits acceptDocs, Map<Term, TermContext> termContexts)
+            throws IOException {
+        final Spans spans = super.getSpans(context, acceptDocs, termContexts);
+        return new FilterSpans(spans) {
+            @Override
+            public int end() {
+                return in.end() - 1;
+            }
+        };
+    }
+
 }

@@ -20,18 +20,17 @@ package com.shaie.annots;
 import org.apache.lucene.util.Attribute;
 
 /**
- * An {@link Attribute} which records the start of an annotation and its
- * length.
+ * An {@link Attribute} which records the start of an annotation and its length.
  */
 public interface AnnotationSpanAttribute extends Attribute {
 
-  /** Set the annotation's span attributes. */
-  public void setSpan(int start, int length);
-  
-  /** Returns the start position of the annotation. */
-  public int getStart();
-  
-  /** Returns the length of the annotation. */
-  public int getLength();
-  
+    /** Set the annotation's span attributes. */
+    public void setSpan(int start, int length);
+
+    /** Returns the start position of the annotation. */
+    public int getStart();
+
+    /** Returns the length of the annotation. */
+    public int getLength();
+
 }
