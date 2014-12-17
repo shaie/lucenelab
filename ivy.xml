@@ -15,7 +15,7 @@
    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
    KIND, either express or implied.  See the License for the
    specific language governing permissions and limitations
-   under the License.    
+   under the License.
 -->
 <!DOCTYPE ivy-module [
     <!ENTITY lucene.version "4.10.2">
@@ -39,6 +39,7 @@
     <dependency org="org.apache.lucene" name="lucene-queries" rev="&lucene.version;"/>
     <dependency org="org.apache.lucene" name="lucene-queryparser" rev="&lucene.version;"/>
     <dependency org="org.apache.lucene" name="lucene-test-framework" rev="&lucene.version;"/>
+    <dependency org="org.apache.lucene" name="lucene-suggest" rev="&lucene.version;"/>
 
     <dependency org="jakarta-regexp" name="jakarta-regexp" rev="1.4"/>
 
