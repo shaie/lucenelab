@@ -1,0 +1,98 @@
+package com.shaie.solr.solrj;
+
+import java.io.IOException;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
+import org.apache.solr.common.params.CoreAdminParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/** A helper class for interacting with Solr collections. */
+public class CollectionAdminHelper {
+
+    private final SolrClient solrClient;
+
+    public CollectionAdminHelper(SolrClient solrClient) {
+        this.solrClient = solrClient;
+    }
+
+    /** Returns true if the collection denoted by {@code collectionName} exists. */
+    public boolean collectionExists(String collectionName) {
+        try {
+            final CollectionAdminRequest.List listRequest = new CollectionAdminRequest.List();
+            final CollectionAdminResponse listResponse = listRequest.process(solrClient);
+            final ListCollectionsResponse listCollectionsResponse = ListCollectionsResponse.from(listResponse);
+            return listCollectionsResponse.hasCollection(collectionName);
+        } catch (IOException | SolrServerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Creates a collection. */
+    public CreateCollectionResponse createCollection(String collectionName, int numShards, int numReplicas,
+            String configName) {
+        if (collectionExists(collectionName)) {
+            return null;
+        }
+
+        try {
+            final CollectionAdminRequest.Create createCollectionRequest = new CollectionAdminRequest.Create();
+            createCollectionRequest.setCollectionName(collectionName);
+            createCollectionRequest.setNumShards(numShards);
+            createCollectionRequest.setReplicationFactor(numReplicas);
+            createCollectionRequest.setConfigName(configName);
+            createCollectionRequest.setMaxShardsPerNode(10);
+
+            final CollectionAdminResponse response = createCollectionRequest.process(solrClient);
+            return new CreateCollectionResponse(response);
+        } catch (IOException | SolrServerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Adds a replica */
+    public AddReplicaResponse addReplica(String collectionName, String shardName) {
+        if (!collectionExists(collectionName)) {
+            throw new IllegalArgumentException("collection [" + collectionName + "] does not exist");
+        }
+
+        try {
+            final CollectionAdminRequest.AddReplica addReplicaRequest = new CollectionAdminRequest.AddReplica() {
+                @Override
+                public SolrParams getParams() {
+                    ModifiableSolrParams params = (ModifiableSolrParams) super.getParams();
+                    // When the NAME parameter is included, the replica is named like the collection name. This is a bug
+                    // that needs to be fixed in Solr.
+                    params.remove(CoreAdminParams.NAME);
+                    return params;
+                }
+            };
+            addReplicaRequest.setCollectionName(collectionName);
+            addReplicaRequest.setShardName(shardName);
+            final CollectionAdminResponse response = addReplicaRequest.process(solrClient);
+            return new AddReplicaResponse(response);
+        } catch (IOException | SolrServerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
