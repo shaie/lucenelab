@@ -38,7 +38,7 @@ public class Waiter {
      *
      * @return true if the condition was true before the timeout, false if it wasn't.
      */
-    public static boolean waitFor(Wait condition, long time, TimeUnit unit) {
+    public static boolean waitFor(Condition condition, long time, TimeUnit unit) {
         return waitFor(condition, time, unit, DEFAULT_SLEEP_TIME_BETWEEN_CHECKS_MS, TimeUnit.MILLISECONDS);
     }
 
@@ -56,7 +56,7 @@ public class Waiter {
      *
      * @return true if the condition was true before the timeout, false if it wasn't.
      */
-    public static boolean waitFor(Wait condition, long time, TimeUnit unit, long pollEvery, TimeUnit pollUnit) {
+    public static boolean waitFor(Condition condition, long time, TimeUnit unit, long pollEvery, TimeUnit pollUnit) {
         final long waitMs = unit.toMillis(time);
         final long pollwaitMs = pollUnit.toMillis(pollEvery);
         final long startMs = System.currentTimeMillis();
@@ -73,7 +73,7 @@ public class Waiter {
         return false;
     }
 
-    public interface Wait {
+    public interface Condition {
         /** Returns true/false indicating whether or not the condition has been met. */
         boolean isSatisfied();
     }

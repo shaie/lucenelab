@@ -61,7 +61,6 @@ public class CollectionAdminHelper {
             createCollectionRequest.setNumShards(numShards);
             createCollectionRequest.setReplicationFactor(numReplicas);
             createCollectionRequest.setConfigName(configName);
-            createCollectionRequest.setMaxShardsPerNode(10);
 
             final CollectionAdminResponse response = createCollectionRequest.process(solrClient);
             return new CreateCollectionResponse(response);
@@ -70,8 +69,8 @@ public class CollectionAdminHelper {
         }
     }
 
-    /** Adds a replica */
-    public AddReplicaResponse addReplica(String collectionName, String shardName) {
+    /** Adds a replica to the given collection and shard. */
+    public AddReplicaResponse addReplica(String collectionName, String shardName, String nodeName) {
         if (!collectionExists(collectionName)) {
             throw new IllegalArgumentException("collection [" + collectionName + "] does not exist");
         }
@@ -89,10 +88,43 @@ public class CollectionAdminHelper {
             };
             addReplicaRequest.setCollectionName(collectionName);
             addReplicaRequest.setShardName(shardName);
+            addReplicaRequest.setNode(nodeName);
             final CollectionAdminResponse response = addReplicaRequest.process(solrClient);
             return new AddReplicaResponse(response);
         } catch (IOException | SolrServerException e) {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Deletes a replica from the given collection and shard. If the replica's node does not respond, the replica will
+     * be deleted only from ZK.
+     */
+    public void deleteReplica(String collectionName, String shardName, String replicaName) {
+        if (!collectionExists(collectionName)) {
+            throw new IllegalArgumentException("collection [" + collectionName + "] does not exist");
+        }
+
+        try {
+            final CollectionAdminRequest.DeleteReplica deleteReplicaRequest = new CollectionAdminRequest.DeleteReplica() {
+                @Override
+                public SolrParams getParams() {
+                    ModifiableSolrParams params = (ModifiableSolrParams) super.getParams();
+                    // When the NAME parameter is included, the replica is named like the collection name. This is a bug
+                    // that needs to be fixed in Solr.
+                    params.remove(CoreAdminParams.NAME);
+                    return params;
+                }
+            };
+            deleteReplicaRequest.setCollectionName(collectionName);
+            deleteReplicaRequest.setShardName(shardName);
+            deleteReplicaRequest.setReplica(replicaName);
+            deleteReplicaRequest.setOnlyIfDown(false);
+            deleteReplicaRequest.process(solrClient);
+        } catch (IOException | SolrServerException e) {
+            System.err.println("here");
+            throw new RuntimeException(e);
+        }
+    }
+
 }

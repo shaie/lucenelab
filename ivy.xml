@@ -58,7 +58,8 @@
     </dependency>
 
     <!-- test -->
-    <dependency org="junit" name="junit" rev="4.4" />
+    <dependency org="junit" name="junit" rev="4.12" />
+    <dependency org="org.easytesting" name="fest-assert" rev="1.4" />
     
   </dependencies>
 </ivy-module>

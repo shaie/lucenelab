@@ -1,10 +1,11 @@
-package com.shaie.utils;
+package com.shaie.solr;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
-import com.shaie.solr.SolrUpgrades;
+import org.apache.curator.test.TestingServer;
+import org.junit.rules.ExternalResource;
+
+import com.google.common.base.Throwables;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -23,25 +24,35 @@ import com.shaie.solr.SolrUpgrades;
  * limitations under the License.
  */
 
-/** General file utilities. */
-public abstract class FileUtils {
+public class TestingServerResource extends ExternalResource {
 
-    private FileUtils() {
-        // should not be instantiated
+    private final TestingServer zkServer;
+
+    public TestingServerResource() {
+        try {
+            zkServer = new TestingServer(false);
+            System.setProperty(SolrCloudUtils.ZK_HOST_PROP_NAME, zkServer.getConnectString());
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
     }
 
-    /** Returns a {@link File} from a resource. */
-    public static File getFileResource(String resourceName) {
+    @Override
+    protected void before() throws Throwable {
+        zkServer.start();
+    }
+
+    @Override
+    protected void after() {
         try {
-            return new File(SolrUpgrades.class.getClassLoader().getResource(resourceName).toURI());
-        } catch (URISyntaxException e) {
+            zkServer.close();
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    /** Recursively deletes a directory. */
-    public static void deleteDirectory(File dir) throws IOException {
-        org.apache.commons.io.FileUtils.deleteDirectory(dir);
+    public String getConnectString() {
+        return zkServer.getConnectString();
     }
 
 }

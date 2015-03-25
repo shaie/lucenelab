@@ -19,36 +19,28 @@ package com.shaie.solr;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.test.TestingServer;
-import org.apache.lucene.util.IOUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.cloud.ZkController;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
-import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.UpdateParams;
-import org.apache.zookeeper.KeeperException;
 
 import com.carrotsearch.ant.tasks.junit4.dependencies.com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import com.shaie.solr.solrj.CollectionAdminHelper;
-import com.shaie.utils.FileUtils;
-import com.shaie.utils.Waiter;
+import com.shaie.utils.Utils;
 
 public class SolrUpgrades {
 
     private static final String COLLECTION_NAME = "mycollection";
-    private static final String SOLRXML_LOCATION_PROP_NAME = "solr.solrxml.location";
-    private static final String SOLRXML_LOCATION_PROP_VALUE = "zookeeper";
     private static final String ZK_HOST_PROP_NAME = "zkHost";
     private static final String CONFIG_NAME = "upgrades";
 
@@ -69,40 +61,16 @@ public class SolrUpgrades {
     }
 
     /** Uploads configuration files and solr.xml to ZooKeeper. */
-    private static void uploadConfigToZk(String connectString) throws IOException, KeeperException,
-            InterruptedException {
-        final SolrZkClient zkClient = new SolrZkClient(connectString, 120000);
-        try {
-            final File confDir = FileUtils.getFileResource("solr/coreconf");
-            ZkController.uploadConfigDir(zkClient, confDir, CONFIG_NAME);
-            zkClient.makePath("/solr.xml", FileUtils.getFileResource("solr/solr.xml"), false, true);
-            System.setProperty(SOLRXML_LOCATION_PROP_NAME, SOLRXML_LOCATION_PROP_VALUE);
-        } finally {
-            IOUtils.close(zkClient);
-        }
+    private static void uploadConfigToZk(String connectString) {
+        final File confDir = Utils.getFileResource("solr/coreconf");
+        final File solrXml = Utils.getFileResource("solr/solr.xml");
+        SolrCloudUtils.uploadConfigToZk(connectString, CONFIG_NAME, confDir, solrXml);
     }
 
     private static void exitAndCleanup(File workDir) throws IOException {
         System.out.println("Deleting " + workDir);
-        FileUtils.deleteDirectory(workDir);
+        org.apache.commons.io.FileUtils.deleteDirectory(workDir);
         System.exit(0);
-    }
-
-    private static void waitForAllActive(final String collection, ZkStateReader zkStateReader, long timeoutSeconds) {
-        final CollectionsStateHelper collectionsStateHelper = new CollectionsStateHelper(
-                zkStateReader.getClusterState());
-        Waiter.waitFor(new Waiter.Wait() {
-            @Override
-            public boolean isSatisfied() {
-                boolean result = collectionsStateHelper.isCollectionFullyActive(collection);
-                if (!result) {
-                    System.out.println("--- Not all slices and replicas of collection [" + collection
-                            + "] are active: all_slices=" + collectionsStateHelper.getSlices(collection)
-                            + ", active_slices=" + collectionsStateHelper.getActiveSlices(collection));
-                }
-                return result;
-            }
-        }, timeoutSeconds, TimeUnit.SECONDS, 500, TimeUnit.MILLISECONDS);
     }
 
     private static void index_doc_to_two_nodes_and_verify(CloudSolrClient solrClient) throws SolrServerException,
@@ -124,7 +92,7 @@ public class SolrUpgrades {
         System.out.println("  +++ full response: " + rsp);
 
         // search each replica
-        CollectionsStateHelper csh = new CollectionsStateHelper(solrClient.getZkStateReader().getClusterState());
+        CollectionsStateHelper csh = new CollectionsStateHelper(solrClient.getZkStateReader());
         for (Slice slice : csh.getSlices(COLLECTION_NAME)) {
             for (Replica replica : slice.getReplicas()) {
                 System.out.println(replica);
@@ -160,7 +128,7 @@ public class SolrUpgrades {
             collectionAdminHelper.createCollection(COLLECTION_NAME, 1, 2, CONFIG_NAME);
             solrClient.setDefaultCollection(COLLECTION_NAME);
 
-            waitForAllActive(COLLECTION_NAME, solrClient.getZkStateReader(), 10);
+            SolrCloudUtils.waitForAllActive(COLLECTION_NAME, solrClient.getZkStateReader(), 10);
 
             index_doc_to_two_nodes_and_verify(solrClient);
 

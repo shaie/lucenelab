@@ -1,10 +1,11 @@
 package com.shaie.solr.solrj;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.solr.common.util.NamedList;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,7 +32,7 @@ public class ListCollectionsResponse extends CollectionAdminResponse {
         return new ListCollectionsResponse(collectionAdminResponse);
     }
 
-    private final List<String> collections;
+    private final Set<String> collections;
 
     @SuppressWarnings("unchecked")
     private ListCollectionsResponse(
@@ -39,11 +40,11 @@ public class ListCollectionsResponse extends CollectionAdminResponse {
         super(listCollectionsResponse);
 
         final NamedList<Object> response = rawResponse.getResponse();
-        this.collections = ImmutableList.copyOf((List<String>) response.get("collections"));
+        this.collections = ImmutableSet.copyOf((List<String>) response.get("collections"));
     }
 
     /** Returns the list of collections returned from the request. */
-    public List<String> getCollections() {
+    public Set<String> getCollections() {
         return collections;
     }
 

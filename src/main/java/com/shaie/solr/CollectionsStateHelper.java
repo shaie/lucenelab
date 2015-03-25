@@ -1,10 +1,17 @@
 package com.shaie.solr;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.solr.common.cloud.ClusterState;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
+import org.apache.solr.common.cloud.ZkStateReader;
+import org.testng.collections.Maps;
+
+import com.google.common.collect.Lists;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,26 +33,54 @@ import org.apache.solr.common.cloud.Slice;
 /** A helper for querying the state of Solr collections. */
 public class CollectionsStateHelper {
 
-    private final ClusterState clusterState;
+    private final ZkStateReader zkStateReader;
 
-    public CollectionsStateHelper(ClusterState clusterState) {
-        this.clusterState = clusterState;
+    public CollectionsStateHelper(ZkStateReader zkStateReader) {
+        this.zkStateReader = zkStateReader;
     }
 
     /** Returns the slices (shards) of a collection. */
     public Collection<Slice> getSlices(String collection) {
-        return clusterState.getSlices(collection);
+        return getClusterState().getSlices(collection);
     }
 
-    /** Returns the active slices of a collection. */
-    public Collection<Slice> getActiveSlices(String collection) {
-        return clusterState.getActiveSlices(collection);
+    /** Returns the active replicas of a collection. */
+    public Collection<Replica> getActiveReplicas(String collection) {
+        List<Replica> activeReplicas = Lists.newArrayList();
+        for (Slice slice : getSlices(collection)) {
+            if (!isSliceActive(slice)) {
+                continue;
+            }
+            for (Replica replica : slice.getReplicas()) {
+                if (isReplicaActive(replica)) {
+                    activeReplicas.add(replica);
+                }
+            }
+        }
+        return activeReplicas;
+    }
+
+    /** Returns the inactive replicas of a collection. */
+    public Collection<Replica> getInactiveReplicas(String collection) {
+        List<Replica> inactiveReplicas = Lists.newArrayList();
+        for (Slice slice : getSlices(collection)) {
+            if (!isSliceActive(slice)) {
+                inactiveReplicas.addAll(slice.getReplicas());
+            } else {
+                for (Replica replica : slice.getReplicas()) {
+                    if (!isReplicaActive(replica)) {
+                        inactiveReplicas.add(replica);
+                    }
+                }
+            }
+        }
+        return inactiveReplicas;
     }
 
     /** Returns true if all the slices and replicas of a collection are active. */
     public boolean isCollectionFullyActive(String collection) {
         for (Slice slice : getSlices(collection)) {
-            if (!areSliceAndReplicasActive(slice)) {
+            if (!isSliceAndAllReplicasActive(slice)) {
                 return false;
             }
         }
@@ -53,8 +88,8 @@ public class CollectionsStateHelper {
     }
 
     /** Returns true if the slice and all its replicas are active. */
-    public boolean areSliceAndReplicasActive(Slice slice) {
-        if (!slice.getState().equals(Slice.ACTIVE)) {
+    public boolean isSliceAndAllReplicasActive(Slice slice) {
+        if (!isSliceActive(slice)) {
             return false;
         }
         for (Replica replica : slice.getReplicas()) {
@@ -65,9 +100,96 @@ public class CollectionsStateHelper {
         return true;
     }
 
+    /**
+     * Returns true whether the slice is active. Note that the slice may be in ACTIVE state, but some of its replicas
+     * may not.
+     *
+     * @see #isSliceAndAllReplicasActive(Slice)
+     */
+    public boolean isSliceActive(Slice slice) {
+        return slice.getState().equals(Slice.ACTIVE);
+    }
+
     /** Returns true if the replica is on a live node and active. */
     public boolean isReplicaActive(Replica replica) {
-        return clusterState.liveNodesContain(replica.getNodeName()) && replica.getStr(Slice.STATE).equals(Slice.ACTIVE);
+        return getClusterState().liveNodesContain(replica.getNodeName())
+                && replica.getStr(Slice.STATE).equals(Slice.ACTIVE);
+    }
+
+    /** Returns true if the replica is in a DOWN state. */
+    public boolean isReplicaDown(Replica replica) {
+        return !getClusterState().liveNodesContain(replica.getNodeName())
+                || replica.getStr(ZkStateReader.STATE_PROP).equals(ZkStateReader.DOWN);
+    }
+
+    /** Returns all the replicas (of all shards and collections) that exist on the given node. */
+    public List<Replica> getAllReplicas(String nodeName) {
+        final List<Replica> replicas = Lists.newArrayList();
+        final ClusterState clusterState = getClusterState();
+        for (String collection : clusterState.getCollections()) {
+            for (Slice slice : clusterState.getSlices(collection)) {
+                for (Replica replica : slice.getReplicas()) {
+                    if (replica.getNodeName().equals(nodeName)) {
+                        replicas.add(replica);
+                    }
+                }
+            }
+        }
+        return replicas;
+    }
+
+    /** Returns true if the given node holds a replica of the given shard of the given collection. */
+    public boolean isNodeReplicaOfShard(String collectionName, String shardName, String nodeName) {
+        for (Replica replica : getClusterState().getSlice(collectionName, shardName).getReplicas()) {
+            if (replica.getNodeName().equals(nodeName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns all the nodes with down replicas. Note that some replicas for a node may not be marked DOWN, however per
+     * node returned there is at least one replica that was marked DOWN.
+     */
+    public Map<String, List<ReplicaInfo>> getDownReplicas() {
+        final Map<String, List<ReplicaInfo>> nodeReplicas = getNodeReplicas();
+        final Map<String, List<ReplicaInfo>> result = Maps.newHashMap();
+        for (Entry<String, List<ReplicaInfo>> entry : nodeReplicas.entrySet()) {
+            for (ReplicaInfo replicaInfo : entry.getValue()) {
+                if (isReplicaDown(replicaInfo.getReplica())) {
+                    result.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Obtains the {@link ClusterState} from the the {@link ZkStateReader}. This needs to be done periodically since the
+     * state object reference changes as the cluster state changes.
+     */
+    public ClusterState getClusterState() {
+        return zkStateReader.getClusterState();
+    }
+
+    /** Returns all replicas per node. */
+    private Map<String, List<ReplicaInfo>> getNodeReplicas() {
+        final ClusterState clusterState = getClusterState();
+        final Map<String, List<ReplicaInfo>> result = Maps.newHashMap();
+        for (String collection : clusterState.getCollections()) {
+            for (Slice slice : clusterState.getSlices(collection)) {
+                for (Replica replica : slice.getReplicas()) {
+                    List<ReplicaInfo> nodeReplicas = result.get(replica.getNodeName());
+                    if (nodeReplicas == null) {
+                        nodeReplicas = Lists.newArrayList();
+                        result.put(replica.getNodeName(), nodeReplicas);
+                    }
+                    nodeReplicas.add(new ReplicaInfo(replica, collection, slice.getName()));
+                }
+            }
+        }
+        return result;
     }
 
 }
