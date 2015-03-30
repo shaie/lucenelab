@@ -123,7 +123,7 @@ public class CollectionsStateHelper {
     }
 
     /** Returns all the replicas (of all shards and collections) that exist on the given node. */
-    public List<Replica> getAllReplicas(String nodeName) {
+    public List<Replica> getAllNodeReplicas(String nodeName) {
         final List<Replica> replicas = Lists.newArrayList();
         final ClusterState clusterState = getClusterState();
         for (String collection : clusterState.getCollections()) {
@@ -134,6 +134,15 @@ public class CollectionsStateHelper {
                     }
                 }
             }
+        }
+        return replicas;
+    }
+
+    /** Returns all the replicas of all shards of the specified collection. */
+    public List<Replica> getAllCollectionReplicas(String collection) {
+        final List<Replica> replicas = Lists.newArrayList();
+        for (Slice slice : getClusterState().getSlices(collection)) {
+            replicas.addAll(slice.getReplicas());
         }
         return replicas;
     }

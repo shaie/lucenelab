@@ -1,4 +1,4 @@
-package com.shaie.solr;
+package com.shaie.solr.utils;
 
 import java.io.IOException;
 
@@ -6,6 +6,7 @@ import org.apache.curator.test.TestingServer;
 import org.junit.rules.ExternalResource;
 
 import com.google.common.base.Throwables;
+import com.shaie.solr.SolrCloudUtils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more

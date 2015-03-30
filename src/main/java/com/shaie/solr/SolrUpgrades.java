@@ -63,8 +63,7 @@ public class SolrUpgrades {
     /** Uploads configuration files and solr.xml to ZooKeeper. */
     private static void uploadConfigToZk(String connectString) {
         final File confDir = Utils.getFileResource("solr/coreconf");
-        final File solrXml = Utils.getFileResource("solr/solr.xml");
-        SolrCloudUtils.uploadConfigToZk(connectString, CONFIG_NAME, confDir, solrXml);
+        SolrCloudUtils.uploadConfigToZk(connectString, CONFIG_NAME, confDir);
     }
 
     private static void exitAndCleanup(File workDir) throws IOException {
@@ -116,7 +115,8 @@ public class SolrUpgrades {
         final TestingServer zkServer = startZooKeeper(workDir);
         final CloudSolrClient solrClient = new CloudSolrClient(zkServer.getConnectString());
         final CollectionAdminHelper collectionAdminHelper = new CollectionAdminHelper(solrClient);
-        final MiniSolrCloudCluster solrCluster = new MiniSolrCloudCluster(workDir);
+        final File solrXml = Utils.getFileResource("solr/solr.xml");
+        final MiniSolrCloudCluster solrCluster = new MiniSolrCloudCluster(workDir, solrXml, zkServer.getConnectString());
 
         try {
             uploadConfigToZk(zkServer.getConnectString());
@@ -141,5 +141,4 @@ public class SolrUpgrades {
             exitAndCleanup(workDir);
         }
     }
-
 }

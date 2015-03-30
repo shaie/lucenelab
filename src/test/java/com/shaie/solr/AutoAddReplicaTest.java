@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.shaie.solr.solrj.CollectionAdminHelper;
+import com.shaie.solr.utils.MiniSolrCloudClusterResource;
 import com.shaie.utils.Utils;
 
 /*
@@ -40,20 +41,21 @@ public class AutoAddReplicaTest {
     private static final String COLLECTION_NAME = "mycollection";
     private static final long WAIT_TIMEOUT_SECONDS = 5;
 
-    @Rule
-    public final TestingServerResource zkServer = new TestingServerResource();
+    // @Rule
+    // public final TestingServerResource zkServer = new TestingServerResource();
 
     @Rule
-    public final MiniSolrCloudClusterResource solrClusterResource = new MiniSolrCloudClusterResource();
+    public final MiniSolrCloudClusterResource solrClusterResource = new MiniSolrCloudClusterResource(
+            Utils.getFileResource("solr/solr.xml"));
 
     private final MiniSolrCloudCluster solrCluster = solrClusterResource.getSolrCluster();
-    private final CloudSolrClient solrClient = new CloudSolrClient(zkServer.getConnectString());
+    private final CloudSolrClient solrClient = new CloudSolrClient(solrClusterResource.getConnectString());
     private final CollectionAdminHelper collectionAdminHelper = new CollectionAdminHelper(solrClient);
 
     @Before
     public void setUp() {
-        SolrCloudUtils.uploadConfigToZk(zkServer.getConnectString(), CONFIG_NAME,
-                Utils.getFileResource("solr/conf"), Utils.getFileResource("solr/solr.xml"));
+        SolrCloudUtils.uploadConfigToZk(solrClusterResource.getConnectString(), CONFIG_NAME,
+                Utils.getFileResource("solr/conf"));
         solrClient.setDefaultCollection(COLLECTION_NAME);
     }
 
@@ -114,7 +116,7 @@ public class AutoAddReplicaTest {
         collectionAdminHelper.addReplica(COLLECTION_NAME, "shard1", node2Name);
         SolrCloudUtils.waitForReplicasToSync(COLLECTION_NAME, solrClient, WAIT_TIMEOUT_SECONDS);
 
-        assertThat(collectionsStateHelper.getAllReplicas(node2Name).size()).isEqualTo(2);
+        assertThat(collectionsStateHelper.getAllNodeReplicas(node2Name).size()).isEqualTo(2);
 
         solrCluster.stopSolr("node2");
         sleepSome(200);
@@ -125,7 +127,7 @@ public class AutoAddReplicaTest {
         final String node3Name = SolrCloudUtils.baseUrlToNodeName(solrCluster.getBaseUrl("node3"));
         recoveryUtils.takeOverDownNode(node3Name);
         SolrCloudUtils.waitForReplicasToSync(COLLECTION_NAME, solrClient, WAIT_TIMEOUT_SECONDS);
-        assertThat(collectionsStateHelper.getAllReplicas(node3Name).size()).isEqualTo(2);
+        assertThat(collectionsStateHelper.getAllNodeReplicas(node3Name).size()).isEqualTo(2);
 
         verifyReplicasState(3, 0);
     }
@@ -141,7 +143,7 @@ public class AutoAddReplicaTest {
 
         final CollectionsStateHelper collectionsStateHelper = new CollectionsStateHelper(solrClient.getZkStateReader());
         final String node2Name = SolrCloudUtils.baseUrlToNodeName(solrCluster.getBaseUrl("node2"));
-        assertThat(collectionsStateHelper.getAllReplicas(node2Name).size()).isEqualTo(2);
+        assertThat(collectionsStateHelper.getAllNodeReplicas(node2Name).size()).isEqualTo(2);
 
         solrCluster.stopSolr("node2");
         sleepSome(200);
@@ -154,7 +156,7 @@ public class AutoAddReplicaTest {
         for (String collection : collections) {
             SolrCloudUtils.waitForReplicasToSync(collection, solrClient, WAIT_TIMEOUT_SECONDS);
         }
-        assertThat(collectionsStateHelper.getAllReplicas(node3Name).size()).isEqualTo(2);
+        assertThat(collectionsStateHelper.getAllNodeReplicas(node3Name).size()).isEqualTo(2);
 
         for (String collection : collections) {
             verifyReplicasState(collection, 2, 0);

@@ -35,29 +35,27 @@ public class SolrCloudUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SolrCloudUtils.class);
 
-    public static final String SOLRXML_LOCATION_PROP_NAME = "solr.solrxml.location";
-    public static final String SOLRXML_LOCATION_PROP_VALUE = "zookeeper";
+    private static final long DEFAULT_POLL_INTERVAL_MS = 500;
+
     public static final String ZK_HOST_PROP_NAME = "zkHost";
 
     private SolrCloudUtils() {
         // should not be instantiated
     }
 
-    /** Uploads configuration files and solr.xml to ZooKeeper. */
-    public static void uploadConfigToZk(String connectString, String configName, File confDir, File solrXml) {
+    /** Uploads configuration files to ZooKeeper. */
+    public static void uploadConfigToZk(String connectString, String configName, File confDir) {
         try (final SolrZkClient zkClient = new SolrZkClient(connectString, 120000)) {
             ZkController.uploadConfigDir(zkClient, confDir, configName);
-            zkClient.makePath("/solr.xml", solrXml, false, true);
-            System.setProperty(SOLRXML_LOCATION_PROP_NAME, SOLRXML_LOCATION_PROP_VALUE);
         } catch (Exception e) {
             throw Throwables.propagate(e);
         }
     }
 
     /** Waits until all replicas of all slices of the collection are active, or the timeout has expired. */
-    public static void waitForAllActive(final String collection, ZkStateReader zkStateReader, long timeoutSeconds) {
+    public static boolean waitForAllActive(final String collection, ZkStateReader zkStateReader, long timeoutSeconds) {
         final CollectionsStateHelper collectionsStateHelper = new CollectionsStateHelper(zkStateReader);
-        Waiter.waitFor(new Waiter.Condition() {
+        return Waiter.waitFor(new Waiter.Condition() {
             @SuppressWarnings("synthetic-access")
             @Override
             public boolean isSatisfied() {
@@ -75,14 +73,25 @@ public class SolrCloudUtils {
     }
 
     /** Waits until all replicas of the collection are in sync. */
-    public static void waitForReplicasToSync(final String collection, CloudSolrClient solrClient, long timeoutSeconds) {
+    public static boolean waitForReplicasToSync(final String collection, CloudSolrClient solrClient, long timeoutSeconds) {
         final ReplicasSyncVerifier verifier = new ReplicasSyncVerifier(solrClient);
-        Waiter.waitFor(new Waiter.Condition() {
+        return Waiter.waitFor(new Waiter.Condition() {
             @Override
             public boolean isSatisfied() {
                 return verifier.verify(collection);
             }
-        }, timeoutSeconds, TimeUnit.SECONDS, 500, TimeUnit.MILLISECONDS);
+        }, timeoutSeconds, TimeUnit.SECONDS, DEFAULT_POLL_INTERVAL_MS, TimeUnit.MILLISECONDS);
+    }
+
+    /** Waits for the given node to disappear from the cluster's live nodes. */
+    public static boolean waitForNodeToDisappearFromLiveNodes(final CloudSolrClient solrClient, final String nodeName,
+            long timeoutSeconds) {
+        return Waiter.waitFor(new Waiter.Condition() {
+            @Override
+            public boolean isSatisfied() {
+                return !solrClient.getZkStateReader().getClusterState().liveNodesContain(nodeName);
+            }
+        }, timeoutSeconds, TimeUnit.SECONDS, DEFAULT_POLL_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }
 
     /** Returns a Solr node's base URL to a node name as appears */

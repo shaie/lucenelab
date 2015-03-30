@@ -24,19 +24,32 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.embedded.JettySolrRunner;
+import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.SolrZooKeeper;
+import org.apache.solr.servlet.SolrDispatchFilter;
 
 import com.carrotsearch.ant.tasks.junit4.dependencies.com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 
 /** Simulates a SolrCloud cluster by creating allowing to start/stop nodes. */
 public class MiniSolrCloudCluster implements AutoCloseable {
+
+    public static final String SOLRXML_LOCATION_PROP_NAME = "solr.solrxml.location";
+    public static final String SOLRXML_LOCATION_PROP_VALUE = "zookeeper";
 
     private static final String SOLR_CONTEXT = "/solr";
 
     private final File workDir;
     private final Map<String, JettySolrRunner> solrRunners = new HashMap<>();
 
-    public MiniSolrCloudCluster(File workDir) {
+    public MiniSolrCloudCluster(File workDir, File solrXml, String connectString) {
         this.workDir = workDir;
+        try (final SolrZkClient zkClient = new SolrZkClient(connectString, 120000)) {
+            zkClient.makePath("/solr.xml", solrXml, false, true);
+            System.setProperty(SOLRXML_LOCATION_PROP_NAME, SOLRXML_LOCATION_PROP_VALUE);
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
     }
 
     /** Starts multiple Solr nodes. */
@@ -58,10 +71,27 @@ public class MiniSolrCloudCluster implements AutoCloseable {
     }
 
     /**
-     * Kills the Solr instance identified by the given {@code nodeId}. Beyond just stopping it, this method also deletes
-     * its working directory.
+     * Kills the Solr instance identified by the given {@code nodeId}. Unlike {@link #stopSolr(String)}, this method
+     * prevents Solr from doing a graceful shutdown, so that states recorded in ZooKeeper aren't consistent.
      */
     public void killSolr(String nodeId) {
+        final JettySolrRunner solrRunner = getJettySolrRunner(nodeId);
+        final SolrDispatchFilter solrFilter = (SolrDispatchFilter) solrRunner.getDispatchFilter().getFilter();
+        final SolrZooKeeper solrZooKeeper = solrFilter.getCores().getZkController().getZkClient().getSolrZooKeeper();
+        try {
+            // solrZooKeeper.closeCnxn() doesn't really work
+            solrZooKeeper.close();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        stopSolr(nodeId);
+    }
+
+    /**
+     * Destroys the Solr instance identified by the given {@code nodeId}. Beyond just stopping it, this method also
+     * deletes its working directory.
+     */
+    public void destroySolr(String nodeId) {
         stopSolr(nodeId);
         try {
             FileUtils.deleteDirectory(new File(workDir, nodeId));
@@ -88,8 +118,9 @@ public class MiniSolrCloudCluster implements AutoCloseable {
 
     @Override
     public void close() {
-        for (String nodeId : solrRunners.keySet()) {
-            killSolr(nodeId);
+        // clone the keys so we don't hit ConcurrentModificationException
+        for (String nodeId : Sets.newHashSet(solrRunners.keySet())) {
+            destroySolr(nodeId);
         }
     }
 
