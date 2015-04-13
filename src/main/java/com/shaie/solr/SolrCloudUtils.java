@@ -2,16 +2,24 @@ package com.shaie.solr;
 
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.cloud.ZkController;
 import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.ZkNodeProps;
 import org.apache.solr.common.cloud.ZkStateReader;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.ant.tasks.junit4.dependencies.com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.shaie.utils.Waiter;
 
 /*
@@ -48,6 +56,43 @@ public class SolrCloudUtils {
         try (final SolrZkClient zkClient = new SolrZkClient(connectString, 120000)) {
             ZkController.uploadConfigDir(zkClient, confDir, configName);
         } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /** Deletes a configuration from ZooKeeper. */
+    public static void deleteConfigFromZk(String connectString, String configName) {
+        try (final CuratorFramework cf = createCuratorFramework(connectString)) {
+            cf.delete().deletingChildrenIfNeeded().forPath(ZkController.CONFIGS_ZKNODE + "/" + configName);
+        } catch (Exception e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /** Returns the collection names that were created with the given configuration name. */
+    public static List<String> getCollectionsCreatedWithConfig(CloudSolrClient solrClient, String configName) {
+        final List<String> result = Lists.newArrayList();
+        final ZkStateReader zkStateReader = solrClient.getZkStateReader();
+        for (String collection : zkStateReader.getClusterState().getCollections()) {
+            final String collectionConfigName = getCollectionConfigName(zkStateReader, collection);
+            if (configName.equals(collectionConfigName)) {
+                result.add(collection);
+            }
+        }
+        return result;
+    }
+
+    /** Returns a collection's configuration name, or {@code null} if the collection doesn't exist. */
+    public static String getCollectionConfigName(ZkStateReader zkStateReader, String collection) {
+        try {
+            final String collectionZkNode = ZkStateReader.COLLECTIONS_ZKNODE + "/" + collection;
+            final byte[] data = zkStateReader.getZkClient().getData(collectionZkNode, null, null, true);
+            final ZkNodeProps nodeProps = ZkNodeProps.load(data);
+            final String collectionConfigName = nodeProps.getStr(ZkStateReader.CONFIGNAME_PROP);
+            return collectionConfigName;
+        } catch (NoNodeException e) {
+            return null;
+        } catch (KeeperException | InterruptedException e) {
             throw Throwables.propagate(e);
         }
     }
@@ -105,6 +150,13 @@ public class SolrCloudUtils {
             sb.append(baseUri.getPath());
         }
         return sb.toString();
+    }
+
+    private static CuratorFramework createCuratorFramework(String connectString) {
+        final CuratorFramework framework = CuratorFrameworkFactory.newClient(connectString,
+                new ExponentialBackoffRetry(1000, 3));
+        framework.start();
+        return framework;
     }
 
 }

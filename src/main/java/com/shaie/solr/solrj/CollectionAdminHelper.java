@@ -69,6 +69,23 @@ public class CollectionAdminHelper {
         }
     }
 
+    /** Deletes a collection. */
+    public DeleteCollectionResponse deleteCollection(String collectionName) {
+        if (!collectionExists(collectionName)) {
+            return null;
+        }
+
+        try {
+            final CollectionAdminRequest.Delete deleteCollectionRequest = new CollectionAdminRequest.Delete();
+            deleteCollectionRequest.setCollectionName(collectionName);
+
+            final CollectionAdminResponse response = deleteCollectionRequest.process(solrClient);
+            return new DeleteCollectionResponse(response);
+        } catch (IOException | SolrServerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /** Adds a replica to the given collection and shard. */
     public AddReplicaResponse addReplica(String collectionName, String shardName, String nodeName) {
         if (!collectionExists(collectionName)) {
