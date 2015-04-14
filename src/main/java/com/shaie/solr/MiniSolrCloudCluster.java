@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.embedded.JettySolrRunner;
+import org.apache.solr.cloud.ZkController;
 import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.SolrZooKeeper;
 import org.apache.solr.servlet.SolrDispatchFilter;
@@ -45,6 +46,7 @@ public class MiniSolrCloudCluster implements AutoCloseable {
     public MiniSolrCloudCluster(File workDir, File solrXml, String connectString) {
         this.workDir = workDir;
         try (final SolrZkClient zkClient = new SolrZkClient(connectString, 120000)) {
+            ZkController.createClusterZkNodes(zkClient);
             zkClient.makePath("/solr.xml", solrXml, false, true);
             System.setProperty(SOLRXML_LOCATION_PROP_NAME, SOLRXML_LOCATION_PROP_VALUE);
         } catch (Exception e) {
@@ -131,7 +133,7 @@ public class MiniSolrCloudCluster implements AutoCloseable {
         }
         try {
             final JettySolrRunner solrRunner = new JettySolrRunner(solrHome.getAbsolutePath(), SOLR_CONTEXT, 0);
-            solrRunner.start(true);
+            solrRunner.start();
             solrRunners.put(nodeId, solrRunner);
         } catch (Exception e) {
             throw Throwables.propagate(e);

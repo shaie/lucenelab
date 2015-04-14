@@ -2,8 +2,8 @@ package com.shaie.utils;
 
 import java.io.File;
 import java.net.URISyntaxException;
-
-import com.shaie.solr.SolrUpgrades;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -32,7 +32,16 @@ public abstract class Utils {
     /** Returns a {@link File} from a resource. */
     public static File getFileResource(String resourceName) {
         try {
-            return new File(SolrUpgrades.class.getClassLoader().getResource(resourceName).toURI());
+            return new File(Utils.class.getClassLoader().getResource(resourceName).toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Returns a {@link Path} from a resource. */
+    public static Path getPathResource(String resourceName) {
+        try {
+            return Paths.get(Utils.class.getClassLoader().getResource(resourceName).toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

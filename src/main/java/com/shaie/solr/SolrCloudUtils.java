@@ -1,23 +1,18 @@
 package com.shaie.solr;
 
-import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.cloud.ZkController;
 import org.apache.solr.common.SolrException;
-import org.apache.solr.common.cloud.SolrZkClient;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.carrotsearch.ant.tasks.junit4.dependencies.com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.shaie.utils.Waiter;
 
@@ -51,20 +46,11 @@ public class SolrCloudUtils {
     }
 
     /** Uploads configuration files to ZooKeeper. */
-    public static void uploadConfigToZk(String connectString, String configName, File confDir) {
-        try (final SolrZkClient zkClient = new SolrZkClient(connectString, 120000)) {
-            ZkController.uploadConfigDir(zkClient, confDir, configName);
-        } catch (Exception e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    /** Deletes a configuration from ZooKeeper. */
-    public static void deleteConfigFromZk(String connectString, String configName) {
-        try (final CuratorFramework cf = createCuratorFramework(connectString)) {
-            cf.delete().deletingChildrenIfNeeded().forPath(ZkController.CONFIGS_ZKNODE + "/" + configName);
-        } catch (Exception e) {
-            throw Throwables.propagate(e);
+    public static void uploadConfigToZk(CloudSolrClient solrClient, String configName, Path confDir) {
+        try {
+            solrClient.uploadConfig(confDir, configName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -91,17 +77,6 @@ public class SolrCloudUtils {
             }
             throw e;
         }
-        // try {
-        // final String collectionZkNode = ZkStateReader.COLLECTIONS_ZKNODE + "/" + collection;
-        // final byte[] data = zkStateReader.getZkClient().getData(collectionZkNode, null, null, true);
-        // final ZkNodeProps nodeProps = ZkNodeProps.load(data);
-        // final String collectionConfigName = nodeProps.getStr(ZkStateReader.CONFIGNAME_PROP);
-        // return collectionConfigName;
-        // } catch (NoNodeException e) {
-        // return null;
-        // } catch (KeeperException | InterruptedException e) {
-        // throw Throwables.propagate(e);
-        // }
     }
 
     /** Waits until all replicas of all slices of the collection are active, or the timeout has expired. */
@@ -157,13 +132,6 @@ public class SolrCloudUtils {
             sb.append(baseUri.getPath());
         }
         return sb.toString();
-    }
-
-    private static CuratorFramework createCuratorFramework(String connectString) {
-        final CuratorFramework framework = CuratorFrameworkFactory.newClient(connectString,
-                new ExponentialBackoffRetry(1000, 3));
-        framework.start();
-        return framework;
     }
 
 }

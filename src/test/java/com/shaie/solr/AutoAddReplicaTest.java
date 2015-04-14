@@ -41,9 +41,6 @@ public class AutoAddReplicaTest {
     private static final String COLLECTION_NAME = "mycollection";
     private static final long WAIT_TIMEOUT_SECONDS = 5;
 
-    // @Rule
-    // public final TestingServerResource zkServer = new TestingServerResource();
-
     @Rule
     public final MiniSolrCloudClusterResource solrClusterResource = new MiniSolrCloudClusterResource(
             Utils.getFileResource("solr/solr.xml"));
@@ -54,8 +51,7 @@ public class AutoAddReplicaTest {
 
     @Before
     public void setUp() {
-        SolrCloudUtils.uploadConfigToZk(solrClusterResource.getConnectString(), CONFIG_NAME,
-                Utils.getFileResource("solr/conf"));
+        SolrCloudUtils.uploadConfigToZk(solrClient, CONFIG_NAME, Utils.getPathResource("solr/conf"));
         solrClient.setDefaultCollection(COLLECTION_NAME);
     }
 

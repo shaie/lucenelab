@@ -6,9 +6,6 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
-import org.apache.solr.common.params.CoreAdminParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -93,16 +90,7 @@ public class CollectionAdminHelper {
         }
 
         try {
-            final CollectionAdminRequest.AddReplica addReplicaRequest = new CollectionAdminRequest.AddReplica() {
-                @Override
-                public SolrParams getParams() {
-                    ModifiableSolrParams params = (ModifiableSolrParams) super.getParams();
-                    // When the NAME parameter is included, the replica is named like the collection name. This is a bug
-                    // that needs to be fixed in Solr.
-                    params.remove(CoreAdminParams.NAME);
-                    return params;
-                }
-            };
+            final CollectionAdminRequest.AddReplica addReplicaRequest = new CollectionAdminRequest.AddReplica();
             addReplicaRequest.setCollectionName(collectionName);
             addReplicaRequest.setShardName(shardName);
             addReplicaRequest.setNode(nodeName);
@@ -123,16 +111,7 @@ public class CollectionAdminHelper {
         }
 
         try {
-            final CollectionAdminRequest.DeleteReplica deleteReplicaRequest = new CollectionAdminRequest.DeleteReplica() {
-                @Override
-                public SolrParams getParams() {
-                    ModifiableSolrParams params = (ModifiableSolrParams) super.getParams();
-                    // When the NAME parameter is included, the replica is named like the collection name. This is a bug
-                    // that needs to be fixed in Solr.
-                    params.remove(CoreAdminParams.NAME);
-                    return params;
-                }
-            };
+            final CollectionAdminRequest.DeleteReplica deleteReplicaRequest = new CollectionAdminRequest.DeleteReplica();
             deleteReplicaRequest.setCollectionName(collectionName);
             deleteReplicaRequest.setShardName(shardName);
             deleteReplicaRequest.setReplica(replicaName);

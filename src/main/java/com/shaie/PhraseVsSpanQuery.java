@@ -9,10 +9,10 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
@@ -81,7 +81,7 @@ public class PhraseVsSpanQuery {
         BytesRef scratch = new BytesRef();
         while ((scratch = te.next()) != null) {
             System.out.println(scratch.utf8ToString());
-            DocsAndPositionsEnum dape = ar.termPositionsEnum(new Term("f", scratch.utf8ToString()));
+            PostingsEnum dape = ar.postings(new Term("f", scratch.utf8ToString()));
             System.out.println("  doc=" + dape.nextDoc() + ", pos=" + dape.nextPosition());
         }
 

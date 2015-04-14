@@ -54,8 +54,7 @@ public class MiniSolrCloudClusterTest {
 
     @Before
     public void setUp() {
-        SolrCloudUtils.uploadConfigToZk(solrClusterResource.getConnectString(), CONFIG_NAME,
-                Utils.getFileResource("solr/conf"));
+        SolrCloudUtils.uploadConfigToZk(solrClient, CONFIG_NAME, Utils.getPathResource("solr/conf"));
         solrClient.setDefaultCollection(COLLECTION_NAME);
     }
 

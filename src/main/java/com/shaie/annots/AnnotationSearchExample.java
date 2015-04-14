@@ -28,10 +28,10 @@ import org.apache.lucene.analysis.sinks.TeeSinkTokenFilter;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
@@ -87,7 +87,7 @@ public class AnnotationSearchExample {
         System.out.println();
 
         final ByteArrayDataInput in = new ByteArrayDataInput();
-        DocsAndPositionsEnum dape = ar.termPositionsEnum(new Term("annot", COLOR_ANNOT_TERM));
+        PostingsEnum dape = ar.postings(new Term("annot", COLOR_ANNOT_TERM));
         int docID = dape.nextDoc();
         int freq = dape.freq();
         System.out.println("Color annotation spans: doc=" + docID + ", freq=" + freq);

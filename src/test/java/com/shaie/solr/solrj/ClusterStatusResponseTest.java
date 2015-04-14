@@ -130,7 +130,7 @@ public class ClusterStatusResponseTest {
     }
 
     private void uploadConfiguration() {
-        uploadConfigToZk(solrClusterResource.getConnectString(), CONFIG_NAME, Utils.getFileResource("solr/conf"));
+        uploadConfigToZk(solrClient, CONFIG_NAME, Utils.getPathResource("solr/conf"));
     }
 
     private void createCollectionAndWaitForRecoveries(String collectionName, int numShards, int numReplicas) {
