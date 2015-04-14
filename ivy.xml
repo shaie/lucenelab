@@ -51,6 +51,9 @@
     <dependency org="org.apache.curator" name="curator-framework" rev="2.7.0" />
     <dependency org="org.apache.curator" name="curator-test" rev="2.7.0" />
     
+    <dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.5.2" />
+    <dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.5.2" />
+    
     <dependency org="org.slf4j" name="slf4j-api" rev="1.7.10"/>
     <dependency org="org.slf4j" name="slf4j-jcl" rev="1.7.10"/>
 

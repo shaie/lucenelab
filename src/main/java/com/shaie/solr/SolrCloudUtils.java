@@ -10,10 +10,9 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.cloud.ZkController;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.SolrZkClient;
-import org.apache.solr.common.cloud.ZkNodeProps;
 import org.apache.solr.common.cloud.ZkStateReader;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,16 +84,24 @@ public class SolrCloudUtils {
     /** Returns a collection's configuration name, or {@code null} if the collection doesn't exist. */
     public static String getCollectionConfigName(ZkStateReader zkStateReader, String collection) {
         try {
-            final String collectionZkNode = ZkStateReader.COLLECTIONS_ZKNODE + "/" + collection;
-            final byte[] data = zkStateReader.getZkClient().getData(collectionZkNode, null, null, true);
-            final ZkNodeProps nodeProps = ZkNodeProps.load(data);
-            final String collectionConfigName = nodeProps.getStr(ZkStateReader.CONFIGNAME_PROP);
-            return collectionConfigName;
-        } catch (NoNodeException e) {
-            return null;
-        } catch (KeeperException | InterruptedException e) {
-            throw Throwables.propagate(e);
+            return zkStateReader.readConfigName(collection);
+        } catch (SolrException e) {
+            if (e.getCause() instanceof NoNodeException) {
+                return null;
+            }
+            throw e;
         }
+        // try {
+        // final String collectionZkNode = ZkStateReader.COLLECTIONS_ZKNODE + "/" + collection;
+        // final byte[] data = zkStateReader.getZkClient().getData(collectionZkNode, null, null, true);
+        // final ZkNodeProps nodeProps = ZkNodeProps.load(data);
+        // final String collectionConfigName = nodeProps.getStr(ZkStateReader.CONFIGNAME_PROP);
+        // return collectionConfigName;
+        // } catch (NoNodeException e) {
+        // return null;
+        // } catch (KeeperException | InterruptedException e) {
+        // throw Throwables.propagate(e);
+        // }
     }
 
     /** Waits until all replicas of all slices of the collection are active, or the timeout has expired. */
