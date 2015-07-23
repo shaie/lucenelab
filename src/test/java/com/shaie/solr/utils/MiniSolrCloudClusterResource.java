@@ -48,7 +48,7 @@ public class MiniSolrCloudClusterResource extends ExternalResource {
             solrCluster.close();
             zkServer.close();
             FileUtils.deleteDirectory(workDir);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -71,7 +71,7 @@ public class MiniSolrCloudClusterResource extends ExternalResource {
             zkServer.start();
             System.setProperty(SolrCloudUtils.ZK_HOST_PROP_NAME, zkServer.getConnectString());
             return zkServer;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw Throwables.propagate(e);
         }
     }

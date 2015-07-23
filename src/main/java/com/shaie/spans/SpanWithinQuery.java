@@ -54,7 +54,7 @@ public class SpanWithinQuery extends SpanQuery {
             return false;
         }
 
-        SpanWithinQuery other = (SpanWithinQuery) o;
+        final SpanWithinQuery other = (SpanWithinQuery) o;
 
         return this.range.equals(other.range) && this.match.equals(other.match)
                 && (this.getBoost() == other.getBoost());
@@ -98,13 +98,13 @@ public class SpanWithinQuery extends SpanQuery {
                     // range and match spans are on the same doc, check that the spans intersect
                     if (matchSpans.start() >= rangeSpans.start() && matchSpans.end() <= rangeSpans.end()) {
                         return true;
+                    }
+
+                    // spans do not intersect, move to the next of either and look for the next match
+                    if (rangeSpans.end() < matchSpans.start()) {
+                        moreRange = rangeSpans.next(); // try the next range span
                     } else {
-                        // spans do not intersect, move to the next of either and look for the next match
-                        if (rangeSpans.end() < matchSpans.start()) {
-                            moreRange = rangeSpans.next(); // try the next range span
-                        } else {
-                            moreMatch = matchSpans.next(); // try the next match span
-                        }
+                        moreMatch = matchSpans.next(); // try the next match span
                     }
                 }
 
@@ -147,13 +147,13 @@ public class SpanWithinQuery extends SpanQuery {
     public Query rewrite(IndexReader reader) throws IOException {
         SpanWithinQuery clone = null;
 
-        SpanQuery rewrittenRange = (SpanQuery) range.rewrite(reader);
+        final SpanQuery rewrittenRange = (SpanQuery) range.rewrite(reader);
         if (rewrittenRange != range) {
             clone = (SpanWithinQuery) this.clone();
             clone.range = rewrittenRange;
         }
 
-        SpanQuery rewrittenMatch = (SpanQuery) match.rewrite(reader);
+        final SpanQuery rewrittenMatch = (SpanQuery) match.rewrite(reader);
         if (rewrittenMatch != match) {
             if (clone == null) {
                 clone = (SpanWithinQuery) this.clone();
@@ -163,14 +163,13 @@ public class SpanWithinQuery extends SpanQuery {
 
         if (clone != null) {
             return clone; // some clauses rewrote
-        } else {
-            return this; // no clauses rewrote
         }
+        return this; // no clauses rewrote
     }
 
     @Override
     public String toString(String field) {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("spanWithin(");
         sb.append(range.toString(field));
         sb.append(", ");

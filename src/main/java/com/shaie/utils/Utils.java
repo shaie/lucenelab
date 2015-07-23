@@ -5,6 +5,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.google.common.io.Resources;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -32,7 +34,8 @@ public abstract class Utils {
     /** Returns a {@link File} from a resource. */
     public static File getFileResource(String resourceName) {
         try {
-            return new File(Utils.class.getClassLoader().getResource(resourceName).toURI());
+            return new File(Resources.getResource(resourceName).toURI());
+            // return new File(Utils.class.getClassLoader().getResource(resourceName).toURI());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

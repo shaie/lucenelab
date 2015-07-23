@@ -49,16 +49,17 @@ public class SolrCloudUtils {
     public static void uploadConfigToZk(CloudSolrClient solrClient, String configName, Path confDir) {
         try {
             solrClient.uploadConfig(confDir, configName);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     /** Returns the collection names that were created with the given configuration name. */
+    @SuppressWarnings("resource")
     public static List<String> getCollectionsCreatedWithConfig(CloudSolrClient solrClient, String configName) {
         final List<String> result = Lists.newArrayList();
         final ZkStateReader zkStateReader = solrClient.getZkStateReader();
-        for (String collection : zkStateReader.getClusterState().getCollections()) {
+        for (final String collection : zkStateReader.getClusterState().getCollections()) {
             final String collectionConfigName = getCollectionConfigName(zkStateReader, collection);
             if (configName.equals(collectionConfigName)) {
                 result.add(collection);
@@ -71,7 +72,7 @@ public class SolrCloudUtils {
     public static String getCollectionConfigName(ZkStateReader zkStateReader, String collection) {
         try {
             return zkStateReader.readConfigName(collection);
-        } catch (SolrException e) {
+        } catch (final SolrException e) {
             if (e.getCause() instanceof NoNodeException) {
                 return null;
             }
@@ -86,7 +87,7 @@ public class SolrCloudUtils {
             @SuppressWarnings("synthetic-access")
             @Override
             public boolean isSatisfied() {
-                boolean result = collectionsStateHelper.isCollectionFullyActive(collection);
+                final boolean result = collectionsStateHelper.isCollectionFullyActive(collection);
                 if (!result) {
                     LOGGER.info("Not all replicas of collection [{}] are active:\n"
                             + "active_replicas=[{}],\n"
@@ -100,7 +101,8 @@ public class SolrCloudUtils {
     }
 
     /** Waits until all replicas of the collection are in sync. */
-    public static boolean waitForReplicasToSync(final String collection, CloudSolrClient solrClient, long timeoutSeconds) {
+    public static boolean waitForReplicasToSync(final String collection, CloudSolrClient solrClient,
+            long timeoutSeconds) {
         final ReplicasSyncVerifier verifier = new ReplicasSyncVerifier(solrClient);
         return Waiter.waitFor(new Waiter.Condition() {
             @Override

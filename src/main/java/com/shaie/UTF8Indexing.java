@@ -35,20 +35,21 @@ public class UTF8Indexing {
         System.out.println("search for [" + text + "]: " + searcher.search(qp.parse(text), 10).totalHits);
     }
 
+    @SuppressWarnings("resource")
     public static void main(String[] args) throws Exception {
-        Directory dir = new RAMDirectory();
-        StandardAnalyzer analyzer = new StandardAnalyzer();
-        IndexWriterConfig conf = new IndexWriterConfig(analyzer);
-        IndexWriter writer = new IndexWriter(dir, conf);
+        final Directory dir = new RAMDirectory();
+        final StandardAnalyzer analyzer = new StandardAnalyzer();
+        final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
+        final IndexWriter writer = new IndexWriter(dir, conf);
 
-        Document doc = new Document();
+        final Document doc = new Document();
         doc.add(new TextField("f", "Russia\u2013United States relations", Store.YES));
         writer.addDocument(doc);
         writer.close();
 
-        DirectoryReader reader = DirectoryReader.open(dir);
-        IndexSearcher searcher = new IndexSearcher(reader);
-        QueryParser qp = new QueryParser("f", analyzer);
+        final DirectoryReader reader = DirectoryReader.open(dir);
+        final IndexSearcher searcher = new IndexSearcher(reader);
+        final QueryParser qp = new QueryParser("f", analyzer);
         search(searcher, qp, "Russia United States relations");
         search(searcher, qp, "\"Russia United states relations\"");
         search(searcher, qp, "\"Russia-United states relations\"");

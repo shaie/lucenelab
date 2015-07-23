@@ -54,51 +54,52 @@ public class AnnotationSearchExample {
     /** Prints the terms indexed under the given field. */
     static void printFieldTerms(LeafReader reader, String field) throws IOException {
         System.out.println("Terms for field: " + field);
-        TermsEnum te = reader.terms(field).iterator(null);
+        final TermsEnum te = reader.terms(field).iterator(null);
         BytesRef scratch;
         while ((scratch = te.next()) != null) {
             System.out.println("  " + scratch.utf8ToString());
         }
     }
 
+    @SuppressWarnings("resource")
     public static void main(String[] args) throws Exception {
-        Directory dir = new RAMDirectory();
-        IndexWriterConfig conf = new IndexWriterConfig(new WhitespaceAnalyzer());
-        IndexWriter writer = new IndexWriter(dir, conf);
+        final Directory dir = new RAMDirectory();
+        final IndexWriterConfig conf = new IndexWriterConfig(new WhitespaceAnalyzer());
+        final IndexWriter writer = new IndexWriter(dir, conf);
 
         // we need to add the annotation as a TokenStream field, therefore cannot use an Analyzer passed in the
         // IndexWriterConfig.
-        Tokenizer tokenizer = new WhitespaceTokenizer();
+        final Tokenizer tokenizer = new WhitespaceTokenizer();
         tokenizer.setReader(new StringReader("quick brown fox ate the blue red chicken"));
-        TeeSinkTokenFilter textStream = new TeeSinkTokenFilter(tokenizer);
-        TokenStream colorAnnotationStream = new AnnotatingTokenFilter(
+        final TeeSinkTokenFilter textStream = new TeeSinkTokenFilter(tokenizer);
+        final TokenStream colorAnnotationStream = new AnnotatingTokenFilter(
                 textStream.newSinkTokenStream(new ColorsSinkFilter()), COLOR_ANNOT_TERM);
 
-        Document doc = new Document();
+        final Document doc = new Document();
         doc.add(new TextField("text", textStream));
         doc.add(new TextField("annot", colorAnnotationStream));
         writer.addDocument(doc);
 
         writer.close();
 
-        DirectoryReader reader = DirectoryReader.open(dir);
-        LeafReader ar = reader.leaves().get(0).reader(); // we only have one segment
+        final DirectoryReader reader = DirectoryReader.open(dir);
+        final LeafReader ar = reader.leaves().get(0).reader(); // we only have one segment
         printFieldTerms(ar, "text");
         System.out.println();
 
         final ByteArrayDataInput in = new ByteArrayDataInput();
-        PostingsEnum dape = ar.postings(new Term("annot", COLOR_ANNOT_TERM));
-        int docID = dape.nextDoc();
-        int freq = dape.freq();
+        final PostingsEnum dape = ar.postings(new Term("annot", COLOR_ANNOT_TERM));
+        final int docID = dape.nextDoc();
+        final int freq = dape.freq();
         System.out.println("Color annotation spans: doc=" + docID + ", freq=" + freq);
         for (int i = 0; i < freq; i++) {
             dape.nextPosition();
-            BytesRef payload = dape.getPayload();
+            final BytesRef payload = dape.getPayload();
             in.reset(payload.bytes, payload.offset, payload.length);
             System.out.println("  start=" + in.readVInt() + ", length=" + in.readVInt());
         }
 
-        IndexSearcher searcher = new IndexSearcher(reader);
+        final IndexSearcher searcher = new IndexSearcher(reader);
 
         System.out.println("\nsearching for 'red WITHIN color':");
         Query q = new SpanWithinQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)),

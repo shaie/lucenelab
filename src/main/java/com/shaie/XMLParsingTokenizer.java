@@ -47,8 +47,8 @@ public final class XMLParsingTokenizer extends Tokenizer {
 
     private final Tokenizer textTokenizer;
 
-    private final TypeAttribute typeAtt = addAttribute(TypeAttribute.class);;
-    private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);;
+    private final TypeAttribute typeAtt = addAttribute(TypeAttribute.class);
+    private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
 
     private boolean consumeText = false;
 
@@ -108,7 +108,7 @@ public final class XMLParsingTokenizer extends Tokenizer {
                 System.out.println("unhandled event: " + event);
             }
             return true;
-        } catch (XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             throw new IOException(e);
         }
     }
@@ -119,7 +119,7 @@ public final class XMLParsingTokenizer extends Tokenizer {
         try {
             xmlReader = xmlFactory.createXMLStreamReader(input);
             textTokenizer.reset();
-        } catch (XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             throw new IOException(e);
         }
     }
@@ -137,7 +137,7 @@ public final class XMLParsingTokenizer extends Tokenizer {
     public void close() throws IOException {
         try {
             xmlReader.close();
-        } catch (XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             throw new IOException(e);
         } finally {
             try {
@@ -149,18 +149,18 @@ public final class XMLParsingTokenizer extends Tokenizer {
     }
 
     public static void main(String[] args) throws Exception {
-        XMLParsingTokenizer tokenizer = new XMLParsingTokenizer(new WhitespaceTokenizer());
-        tokenizer.setReader(new StringReader("<foo>this is the content</foo>"));
-        tokenizer.reset();
-        TypeAttribute typeAtt = tokenizer.addAttribute(TypeAttribute.class);
-        CharTermAttribute termAtt = tokenizer.addAttribute(CharTermAttribute.class);
-        PositionIncrementAttribute posIncrAtt = tokenizer.addAttribute(PositionIncrementAttribute.class);
-        while (tokenizer.incrementToken()) {
-            System.out.println("term=" + termAtt + ", type=" + typeAtt.type() + ", posIncr="
-                    + posIncrAtt.getPositionIncrement());
+        try (final XMLParsingTokenizer tokenizer = new XMLParsingTokenizer(new WhitespaceTokenizer())) {
+            tokenizer.setReader(new StringReader("<foo>this is the content</foo>"));
+            tokenizer.reset();
+            final TypeAttribute typeAtt = tokenizer.addAttribute(TypeAttribute.class);
+            final CharTermAttribute termAtt = tokenizer.addAttribute(CharTermAttribute.class);
+            final PositionIncrementAttribute posIncrAtt = tokenizer.addAttribute(PositionIncrementAttribute.class);
+            while (tokenizer.incrementToken()) {
+                System.out.println("term=" + termAtt + ", type=" + typeAtt.type() + ", posIncr="
+                        + posIncrAtt.getPositionIncrement());
+            }
+            tokenizer.end();
         }
-        tokenizer.end();
-        tokenizer.close();
     }
 
 }
