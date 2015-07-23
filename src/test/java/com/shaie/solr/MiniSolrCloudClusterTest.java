@@ -28,7 +28,6 @@ import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.params.UpdateParams;
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,10 +72,10 @@ public class MiniSolrCloudClusterTest {
                 .isTrue();
 
         final CollectionsStateHelper collectionsStateHelper = new CollectionsStateHelper(solrClient.getZkStateReader());
-        List<Replica> replicas = collectionsStateHelper.getAllCollectionReplicas(COLLECTION_NAME);
+        final List<Replica> replicas = collectionsStateHelper.getAllCollectionReplicas(COLLECTION_NAME);
         assertThat(replicas.size()).isEqualTo(2);
-        for (Replica replica : replicas) {
-            assertThat(replica.getStr(ZkStateReader.STATE_PROP)).isEqualTo(ZkStateReader.ACTIVE);
+        for (final Replica replica : replicas) {
+            assertThat(replica.getState()).isEqualTo(Replica.State.ACTIVE);
         }
     }
 
