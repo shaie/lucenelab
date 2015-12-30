@@ -109,7 +109,7 @@ public class SpanAnnotationTermQuery extends SpanTermQuery {
                         final byte[] payload = payloadCollector.getPayloads().iterator().next();
                         in.reset(payload);
                         start = in.readVInt();
-                        end = in.readVInt() + start - 1; // end is inclusive
+                        end = in.readVInt() + start;
                         return start;
                     }
 

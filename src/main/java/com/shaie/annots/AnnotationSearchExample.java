@@ -39,13 +39,12 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.spans.FieldMaskingSpanQuery;
 import org.apache.lucene.search.spans.SpanQuery;
+import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.search.spans.SpanWithinQuery;
 import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
-
-import com.shaie.spans.SpanInclusivePositionTermQuery;
 
 /** Demonstrates searching on an indexed annotation with a {@link SpanQuery}. */
 public class AnnotationSearchExample {
@@ -105,14 +104,14 @@ public class AnnotationSearchExample {
         System.out.println("\nsearching for 'red WITHIN color':");
         final Query redWithinColor = new org.apache.lucene.search.spans.SpanWithinQuery(
                 new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)), "text"),
-                new SpanInclusivePositionTermQuery(new Term("text", "red")));
+                new SpanTermQuery(new Term("text", "red")));
         final TopDocs redWithinColorTopDocs = searcher.search(redWithinColor, 10);
         System.out.println(" num results: " + redWithinColorTopDocs.scoreDocs.length);
 
         System.out.println("\nsearching for 'ate WITHIN color':");
         final Query ateWithinColor = new SpanWithinQuery(
                 new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)), "text"),
-                new SpanInclusivePositionTermQuery(new Term("text", "ate")));
+                new SpanTermQuery(new Term("text", "ate")));
         final TopDocs ateWithinColorTopDocs = searcher.search(ateWithinColor, 10);
         System.out.println(" num results: " + ateWithinColorTopDocs.scoreDocs.length);
 
