@@ -21,6 +21,6 @@ import org.apache.lucene.util.Version;
 
 public class Constants {
 
-    public static Version VERSTION = Version.LUCENE_5_1_0;
+    public static Version VERSTION = Version.LATEST;
 
 }

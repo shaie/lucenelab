@@ -46,12 +46,12 @@ public class CollectionsStateHelper {
 
     /** Returns the active replicas of a collection. */
     public Collection<Replica> getActiveReplicas(String collection) {
-        List<Replica> activeReplicas = Lists.newArrayList();
-        for (Slice slice : getSlices(collection)) {
+        final List<Replica> activeReplicas = Lists.newArrayList();
+        for (final Slice slice : getSlices(collection)) {
             if (!isSliceActive(slice)) {
                 continue;
             }
-            for (Replica replica : slice.getReplicas()) {
+            for (final Replica replica : slice.getReplicas()) {
                 if (isReplicaActive(replica)) {
                     activeReplicas.add(replica);
                 }
@@ -62,12 +62,12 @@ public class CollectionsStateHelper {
 
     /** Returns the inactive replicas of a collection. */
     public Collection<Replica> getInactiveReplicas(String collection) {
-        List<Replica> inactiveReplicas = Lists.newArrayList();
-        for (Slice slice : getSlices(collection)) {
+        final List<Replica> inactiveReplicas = Lists.newArrayList();
+        for (final Slice slice : getSlices(collection)) {
             if (!isSliceActive(slice)) {
                 inactiveReplicas.addAll(slice.getReplicas());
             } else {
-                for (Replica replica : slice.getReplicas()) {
+                for (final Replica replica : slice.getReplicas()) {
                     if (!isReplicaActive(replica)) {
                         inactiveReplicas.add(replica);
                     }
@@ -79,7 +79,7 @@ public class CollectionsStateHelper {
 
     /** Returns true if all the slices and replicas of a collection are active. */
     public boolean isCollectionFullyActive(String collection) {
-        for (Slice slice : getSlices(collection)) {
+        for (final Slice slice : getSlices(collection)) {
             if (!isSliceAndAllReplicasActive(slice)) {
                 return false;
             }
@@ -92,7 +92,7 @@ public class CollectionsStateHelper {
         if (!isSliceActive(slice)) {
             return false;
         }
-        for (Replica replica : slice.getReplicas()) {
+        for (final Replica replica : slice.getReplicas()) {
             if (!isReplicaActive(replica)) {
                 return false;
             }
@@ -107,28 +107,28 @@ public class CollectionsStateHelper {
      * @see #isSliceAndAllReplicasActive(Slice)
      */
     public boolean isSliceActive(Slice slice) {
-        return slice.getState().equals(Slice.ACTIVE);
+        return slice.getState() == Slice.State.ACTIVE;
     }
 
     /** Returns true if the replica is on a live node and active. */
     public boolean isReplicaActive(Replica replica) {
         return getClusterState().liveNodesContain(replica.getNodeName())
-                && replica.getStr(Slice.STATE).equals(Slice.ACTIVE);
+                && replica.getState() == Replica.State.ACTIVE;
     }
 
     /** Returns true if the replica is in a DOWN state. */
     public boolean isReplicaDown(Replica replica) {
         return !getClusterState().liveNodesContain(replica.getNodeName())
-                || replica.getStr(ZkStateReader.STATE_PROP).equals(ZkStateReader.DOWN);
+                || replica.getState() == Replica.State.DOWN;
     }
 
     /** Returns all the replicas (of all shards and collections) that exist on the given node. */
     public List<Replica> getAllNodeReplicas(String nodeName) {
         final List<Replica> replicas = Lists.newArrayList();
         final ClusterState clusterState = getClusterState();
-        for (String collection : clusterState.getCollections()) {
-            for (Slice slice : clusterState.getSlices(collection)) {
-                for (Replica replica : slice.getReplicas()) {
+        for (final String collection : clusterState.getCollections()) {
+            for (final Slice slice : clusterState.getSlices(collection)) {
+                for (final Replica replica : slice.getReplicas()) {
                     if (replica.getNodeName().equals(nodeName)) {
                         replicas.add(replica);
                     }
@@ -141,7 +141,7 @@ public class CollectionsStateHelper {
     /** Returns all the replicas of all shards of the specified collection. */
     public List<Replica> getAllCollectionReplicas(String collection) {
         final List<Replica> replicas = Lists.newArrayList();
-        for (Slice slice : getClusterState().getSlices(collection)) {
+        for (final Slice slice : getClusterState().getSlices(collection)) {
             replicas.addAll(slice.getReplicas());
         }
         return replicas;
@@ -149,7 +149,7 @@ public class CollectionsStateHelper {
 
     /** Returns true if the given node holds a replica of the given shard of the given collection. */
     public boolean isNodeReplicaOfShard(String collectionName, String shardName, String nodeName) {
-        for (Replica replica : getClusterState().getSlice(collectionName, shardName).getReplicas()) {
+        for (final Replica replica : getClusterState().getSlice(collectionName, shardName).getReplicas()) {
             if (replica.getNodeName().equals(nodeName)) {
                 return true;
             }
@@ -164,8 +164,8 @@ public class CollectionsStateHelper {
     public Map<String, List<ReplicaInfo>> getDownReplicas() {
         final Map<String, List<ReplicaInfo>> nodeReplicas = getNodeReplicas();
         final Map<String, List<ReplicaInfo>> result = Maps.newHashMap();
-        for (Entry<String, List<ReplicaInfo>> entry : nodeReplicas.entrySet()) {
-            for (ReplicaInfo replicaInfo : entry.getValue()) {
+        for (final Entry<String, List<ReplicaInfo>> entry : nodeReplicas.entrySet()) {
+            for (final ReplicaInfo replicaInfo : entry.getValue()) {
                 if (isReplicaDown(replicaInfo.getReplica())) {
                     result.put(entry.getKey(), entry.getValue());
                 }
@@ -186,9 +186,9 @@ public class CollectionsStateHelper {
     private Map<String, List<ReplicaInfo>> getNodeReplicas() {
         final ClusterState clusterState = getClusterState();
         final Map<String, List<ReplicaInfo>> result = Maps.newHashMap();
-        for (String collection : clusterState.getCollections()) {
-            for (Slice slice : clusterState.getSlices(collection)) {
-                for (Replica replica : slice.getReplicas()) {
+        for (final String collection : clusterState.getCollections()) {
+            for (final Slice slice : clusterState.getSlices(collection)) {
+                for (final Replica replica : slice.getReplicas()) {
                     List<ReplicaInfo> nodeReplicas = result.get(replica.getNodeName());
                     if (nodeReplicas == null) {
                         nodeReplicas = Lists.newArrayList();

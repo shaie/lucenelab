@@ -1,15 +1,18 @@
 package com.shaie.spans;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.Collections;
 
+import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermContext;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.spans.SpanCollector;
 import org.apache.lucene.search.spans.SpanTermQuery;
+import org.apache.lucene.search.spans.SpanWeight;
 import org.apache.lucene.search.spans.Spans;
 import org.apache.lucene.search.spans.TermSpans;
-import org.apache.lucene.util.Bits;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -29,8 +32,8 @@ import org.apache.lucene.util.Bits;
  */
 
 /**
- * A {@link SpanTermQuery} which returns an inclusive {@link Spans}, that is {@link Spans#end()} returns the term's
- * position inclusive, rather than like {@link TermSpans} which return 1 greater than the position.
+ * A {@link SpanTermQuery} which returns an inclusive {@link Spans}, that is {@link Spans#endPosition()} returns the
+ * term's position inclusive, rather than like {@link TermSpans} which return 1 greater than the position.
  */
 public class SpanInclusivePositionTermQuery extends SpanTermQuery {
 
@@ -39,13 +42,70 @@ public class SpanInclusivePositionTermQuery extends SpanTermQuery {
     }
 
     @Override
-    public Spans getSpans(LeafReaderContext context, Bits acceptDocs, Map<Term, TermContext> termContexts)
-            throws IOException {
-        final Spans spans = super.getSpans(context, acceptDocs, termContexts);
-        return new FilterSpans(spans) {
+    public SpanWeight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
+        final TermContext context;
+        final IndexReaderContext topContext = searcher.getTopReaderContext();
+        if (termContext == null || termContext.topReaderContext != topContext) {
+            context = TermContext.build(topContext, term);
+        } else {
+            context = termContext;
+        }
+        return new SpanTermWeight(context, searcher, needsScores ? Collections.singletonMap(term, context) : null) {
             @Override
-            public int end() {
-                return in.end() - 1;
+            public Spans getSpans(LeafReaderContext context, Postings requiredPostings) throws IOException {
+                final Spans spans = super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));
+                return new Spans(this, getSimScorer(context)) {
+
+                    @Override
+                    public int advance(int target) throws IOException {
+                        return spans.advance(target);
+                    }
+
+                    @Override
+                    public void collect(SpanCollector collector) throws IOException {
+                        spans.collect(collector);
+                    }
+
+                    @Override
+                    public long cost() {
+                        return spans.cost();
+                    }
+
+                    @Override
+                    public int docID() {
+                        return spans.docID();
+                    }
+
+                    @Override
+                    public int endPosition() {
+                        return spans.endPosition() - 1;
+                    }
+
+                    @Override
+                    public int nextDoc() throws IOException {
+                        return spans.nextDoc();
+                    }
+
+                    @Override
+                    public int nextStartPosition() throws IOException {
+                        return spans.nextStartPosition();
+                    }
+
+                    @Override
+                    public float positionsCost() {
+                        return spans.positionsCost();
+                    }
+
+                    @Override
+                    public int startPosition() {
+                        return spans.startPosition();
+                    }
+
+                    @Override
+                    public int width() {
+                        return spans.width();
+                    }
+                };
             }
         };
     }

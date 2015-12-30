@@ -49,14 +49,14 @@ public class MiniSolrCloudCluster implements AutoCloseable {
             ZkController.createClusterZkNodes(zkClient);
             zkClient.makePath("/solr.xml", solrXml, false, true);
             System.setProperty(SOLRXML_LOCATION_PROP_NAME, SOLRXML_LOCATION_PROP_VALUE);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw Throwables.propagate(e);
         }
     }
 
     /** Starts multiple Solr nodes. */
     public void startSolrNodes(String... nodeIDs) {
-        for (String nodeId : nodeIDs) {
+        for (final String nodeId : nodeIDs) {
             startSolrNode(nodeId);
         }
     }
@@ -67,7 +67,7 @@ public class MiniSolrCloudCluster implements AutoCloseable {
         try {
             solrRunner.stop();
             solrRunners.remove(nodeId);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw Throwables.propagate(e);
         }
     }
@@ -78,12 +78,12 @@ public class MiniSolrCloudCluster implements AutoCloseable {
      */
     public void killSolr(String nodeId) {
         final JettySolrRunner solrRunner = getJettySolrRunner(nodeId);
-        final SolrDispatchFilter solrFilter = (SolrDispatchFilter) solrRunner.getDispatchFilter().getFilter();
+        final SolrDispatchFilter solrFilter = solrRunner.getSolrDispatchFilter();
         final SolrZooKeeper solrZooKeeper = solrFilter.getCores().getZkController().getZkClient().getSolrZooKeeper();
         try {
             // solrZooKeeper.closeCnxn() doesn't really work
             solrZooKeeper.close();
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }
         stopSolr(nodeId);
@@ -97,7 +97,7 @@ public class MiniSolrCloudCluster implements AutoCloseable {
         stopSolr(nodeId);
         try {
             FileUtils.deleteDirectory(new File(workDir, nodeId));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -121,13 +121,13 @@ public class MiniSolrCloudCluster implements AutoCloseable {
     @Override
     public void close() {
         // clone the keys so we don't hit ConcurrentModificationException
-        for (String nodeId : Sets.newHashSet(solrRunners.keySet())) {
+        for (final String nodeId : Sets.newHashSet(solrRunners.keySet())) {
             destroySolr(nodeId);
         }
     }
 
     private void startSolrNode(String nodeId) {
-        File solrHome = new File(workDir, nodeId);
+        final File solrHome = new File(workDir, nodeId);
         if (!solrHome.exists() && !solrHome.mkdirs()) {
             throw new RuntimeException("[" + solrHome + "] does not exist and fails to create");
         }
@@ -135,7 +135,7 @@ public class MiniSolrCloudCluster implements AutoCloseable {
             final JettySolrRunner solrRunner = new JettySolrRunner(solrHome.getAbsolutePath(), SOLR_CONTEXT, 0);
             solrRunner.start();
             solrRunners.put(nodeId, solrRunner);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw Throwables.propagate(e);
         }
     }

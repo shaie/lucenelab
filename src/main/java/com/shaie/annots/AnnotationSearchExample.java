@@ -37,14 +37,15 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.spans.FieldMaskingSpanQuery;
 import org.apache.lucene.search.spans.SpanQuery;
+import org.apache.lucene.search.spans.SpanWithinQuery;
 import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
 
 import com.shaie.spans.SpanInclusivePositionTermQuery;
-import com.shaie.spans.SpanWithinQuery;
 
 /** Demonstrates searching on an indexed annotation with a {@link SpanQuery}. */
 public class AnnotationSearchExample {
@@ -54,7 +55,7 @@ public class AnnotationSearchExample {
     /** Prints the terms indexed under the given field. */
     static void printFieldTerms(LeafReader reader, String field) throws IOException {
         System.out.println("Terms for field: " + field);
-        final TermsEnum te = reader.terms(field).iterator(null);
+        final TermsEnum te = reader.terms(field).iterator();
         BytesRef scratch;
         while ((scratch = te.next()) != null) {
             System.out.println("  " + scratch.utf8ToString());
@@ -67,7 +68,7 @@ public class AnnotationSearchExample {
         final IndexWriterConfig conf = new IndexWriterConfig(new WhitespaceAnalyzer());
         final IndexWriter writer = new IndexWriter(dir, conf);
 
-        // we need to add the annotation as a TokenStream field, therefore cannot use an Analyzer passed in the
+        // we need to add the annotation as a TokenStream field, therefore cannot use an Analyzer passed to
         // IndexWriterConfig.
         final Tokenizer tokenizer = new WhitespaceTokenizer();
         tokenizer.setReader(new StringReader("quick brown fox ate the blue red chicken"));
@@ -88,7 +89,7 @@ public class AnnotationSearchExample {
         System.out.println();
 
         final ByteArrayDataInput in = new ByteArrayDataInput();
-        final PostingsEnum dape = ar.postings(new Term("annot", COLOR_ANNOT_TERM));
+        final PostingsEnum dape = ar.postings(new Term("annot", COLOR_ANNOT_TERM), PostingsEnum.PAYLOADS);
         final int docID = dape.nextDoc();
         final int freq = dape.freq();
         System.out.println("Color annotation spans: doc=" + docID + ", freq=" + freq);
@@ -102,16 +103,18 @@ public class AnnotationSearchExample {
         final IndexSearcher searcher = new IndexSearcher(reader);
 
         System.out.println("\nsearching for 'red WITHIN color':");
-        Query q = new SpanWithinQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)),
+        final Query redWithinColor = new org.apache.lucene.search.spans.SpanWithinQuery(
+                new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)), "text"),
                 new SpanInclusivePositionTermQuery(new Term("text", "red")));
-        TopDocs td = searcher.search(q, 10);
-        System.out.println("  num results: " + td.scoreDocs.length);
+        final TopDocs redWithinColorTopDocs = searcher.search(redWithinColor, 10);
+        System.out.println(" num results: " + redWithinColorTopDocs.scoreDocs.length);
 
         System.out.println("\nsearching for 'ate WITHIN color':");
-        q = new SpanWithinQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)),
+        final Query ateWithinColor = new SpanWithinQuery(
+                new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)), "text"),
                 new SpanInclusivePositionTermQuery(new Term("text", "ate")));
-        td = searcher.search(q, 10);
-        System.out.println("  num results: " + td.scoreDocs.length);
+        final TopDocs ateWithinColorTopDocs = searcher.search(ateWithinColor, 10);
+        System.out.println(" num results: " + ateWithinColorTopDocs.scoreDocs.length);
 
         reader.close();
         dir.close();

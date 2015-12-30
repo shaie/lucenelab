@@ -1,5 +1,22 @@
 package com.shaie;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import java.io.IOException;
 
 import org.apache.lucene.analysis.TokenStream;
@@ -23,23 +40,6 @@ import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
-
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 public class PhraseVsSpanQuery {
 
@@ -78,7 +78,7 @@ public class PhraseVsSpanQuery {
         final DirectoryReader reader = DirectoryReader.open(dir);
         final IndexSearcher searcher = new IndexSearcher(reader);
         final LeafReader ar = reader.leaves().get(0).reader();
-        final TermsEnum te = ar.terms("f").iterator(null);
+        final TermsEnum te = ar.terms("f").iterator();
         BytesRef scratch = new BytesRef();
         while ((scratch = te.next()) != null) {
             System.out.println(scratch.utf8ToString());
@@ -89,23 +89,20 @@ public class PhraseVsSpanQuery {
         System.out.println();
 
         // try a phrase query with a slop
-        final PhraseQuery pq = new PhraseQuery();
-        pq.add(new Term("f", "a"));
-        pq.add(new Term("f", "b"));
+        final PhraseQuery pqNoSlop = buildPhraseQuery(0);
+        System.out.println("searching for \"a b\"; num results = " + searcher.search(pqNoSlop, 10).totalHits);
 
-        System.out.println("searching for \"a b\"; num results = " + searcher.search(pq, 10).totalHits);
+        final PhraseQuery pqSlop1 = buildPhraseQuery(1);
+        System.out.println("searching for \"a b\"~1; num results = " + searcher.search(pqSlop1, 10).totalHits);
 
-        pq.setSlop(1);
-        System.out.println("searching for \"a b\"~1; num results = " + searcher.search(pq, 10).totalHits);
-
-        pq.setSlop(3);
-        System.out.println("searching for \"a b\"~3; num results = " + searcher.search(pq, 10).totalHits);
+        final PhraseQuery pqSlop3 = buildPhraseQuery(3);
+        System.out.println("searching for \"a b\"~3; num results = " + searcher.search(pqSlop3, 10).totalHits);
 
         final SpanNearQuery snqUnOrdered =
                 new SpanNearQuery(new SpanQuery[] { new SpanTermQuery(new Term("f", "a")),
                         new SpanTermQuery(new Term("f", "b")) }, 1, false);
         System.out.println("searching for SpanNearUnordered('a', 'b'), slop=1; num results = "
-                + searcher.search(snqUnOrdered, 10));
+                + searcher.search(snqUnOrdered, 10).totalHits);
 
         final SpanNearQuery snqOrdered = new SpanNearQuery(new SpanQuery[] { new SpanTermQuery(new Term("f", "a")),
                 new SpanTermQuery(new Term("f", "b")) }, 1, true);
@@ -113,7 +110,14 @@ public class PhraseVsSpanQuery {
                 + searcher.search(snqOrdered, 10).totalHits);
 
         reader.close();
+    }
 
+    private static PhraseQuery buildPhraseQuery(int slop) {
+        return new PhraseQuery.Builder()
+                .add(new Term("f", "a"))
+                .add(new Term("f", "b"))
+                .setSlop(slop)
+                .build();
     }
 
 }

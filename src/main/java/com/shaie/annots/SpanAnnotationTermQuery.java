@@ -18,22 +18,27 @@ package com.shaie.annots;
  */
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
+import java.util.Collections;
 
+import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermContext;
+import org.apache.lucene.payloads.PayloadSpanCollector;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.spans.SpanCollector;
 import org.apache.lucene.search.spans.SpanTermQuery;
+import org.apache.lucene.search.spans.SpanWeight;
 import org.apache.lucene.search.spans.Spans;
 import org.apache.lucene.store.ByteArrayDataInput;
-import org.apache.lucene.util.Bits;
 
 /**
- * A {@link SpanTermQuery} which returns a {@link Spans} whose {@link Spans#start()} and {@link Spans#end()} are read
- * from a payload, while the term's actual position is ignored.
+ * A {@link SpanTermQuery} which returns a {@link Spans} whose {@link Spans#startPosition()} and
+ * {@link Spans#endPosition()} are read from a payload, while the term's actual position is ignored.
  */
 public class SpanAnnotationTermQuery extends SpanTermQuery {
+
+    private final PayloadSpanCollector payloadCollector = new PayloadSpanCollector();
 
     /**
      * Construct a {@link SpanAnnotationTermQuery} matching the given term's spans. The term is assumed to have
@@ -45,61 +50,84 @@ public class SpanAnnotationTermQuery extends SpanTermQuery {
     }
 
     @Override
-    public Spans getSpans(LeafReaderContext context, Bits acceptDocs, Map<Term, TermContext> termContexts)
-            throws IOException {
-        final Spans spans = super.getSpans(context, acceptDocs, termContexts);
-        return new Spans() {
-            private int start, end;
-            final ByteArrayDataInput in = new ByteArrayDataInput();
-
+    public SpanWeight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
+        final TermContext context;
+        final IndexReaderContext topContext = searcher.getTopReaderContext();
+        if (termContext == null || termContext.topReaderContext != topContext) {
+            context = TermContext.build(topContext, term);
+        } else {
+            context = termContext;
+        }
+        return new SpanTermWeight(context, searcher, needsScores ? Collections.singletonMap(term, context) : null) {
             @Override
-            public int start() {
-                return start;
-            }
+            public Spans getSpans(LeafReaderContext context, Postings requiredPostings) throws IOException {
+                final Spans spans = super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));
+                return new Spans(this, getSimScorer(context)) {
 
-            @Override
-            public boolean skipTo(int target) throws IOException {
-                return spans.skipTo(target);
-            }
+                    private int start = -1, end = -1;
+                    private final ByteArrayDataInput in = new ByteArrayDataInput();
 
-            @Override
-            public boolean next() throws IOException {
-                if (!spans.next()) {
-                    return false;
-                }
-                if (!isPayloadAvailable()) {
-                    return next();
-                }
-                byte[] payload = getPayload().iterator().next();
-                in.reset(payload);
-                start = in.readVInt();
-                end = in.readVInt() + start - 1; // end is inclusive
-                return true;
-            }
+                    @Override
+                    public int advance(int target) throws IOException {
+                        return spans.advance(target);
+                    }
 
-            @Override
-            public boolean isPayloadAvailable() throws IOException {
-                return spans.isPayloadAvailable();
-            }
+                    @Override
+                    public void collect(SpanCollector collector) throws IOException {
+                        spans.collect(collector);
+                    }
 
-            @Override
-            public Collection<byte[]> getPayload() throws IOException {
-                return spans.getPayload();
-            }
+                    @Override
+                    public long cost() {
+                        return spans.cost();
+                    }
 
-            @Override
-            public int end() {
-                return end;
-            }
+                    @Override
+                    public int docID() {
+                        return spans.docID();
+                    }
 
-            @Override
-            public int doc() {
-                return spans.doc();
-            }
+                    @Override
+                    public int endPosition() {
+                        return end;
+                    }
 
-            @Override
-            public long cost() {
-                return spans.cost();
+                    @Override
+                    public int nextDoc() throws IOException {
+                        start = end = -1;
+                        return spans.nextDoc();
+                    }
+
+                    @Override
+                    public int nextStartPosition() throws IOException {
+                        final int pos = spans.nextStartPosition();
+                        if (pos == NO_MORE_POSITIONS) {
+                            return NO_MORE_POSITIONS;
+                        }
+                        payloadCollector.reset();
+                        collect(payloadCollector);
+                        final byte[] payload = payloadCollector.getPayloads().iterator().next();
+                        in.reset(payload);
+                        start = in.readVInt();
+                        end = in.readVInt() + start - 1; // end is inclusive
+                        return start;
+                    }
+
+                    @Override
+                    public float positionsCost() {
+                        return spans.positionsCost();
+                    }
+
+                    @Override
+                    public int startPosition() {
+                        return start;
+                    }
+
+                    @Override
+                    public int width() {
+                        return spans.width();
+                    }
+                };
             }
         };
     }
