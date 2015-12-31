@@ -2,22 +2,21 @@ package com.shaie.annots;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with this
- * work for additional information regarding copyright ownership. The ASF
- * licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Unless required byOCP applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-import java.io.IOException;
 import java.io.StringReader;
 
 import org.apache.lucene.analysis.TokenStream;
@@ -33,7 +32,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
@@ -46,20 +44,14 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.BytesRef;
 
+import com.shaie.utils.IndexUtils;
+
 /** Demonstrates searching on an indexed annotation with a {@link SpanQuery}. */
 public class AnnotationSearchExample {
 
+    private static final String ANNOT_FIELD = "annot";
+    private static final String TEXT_FIELD = "text";
     public static final String COLOR_ANNOT_TERM = "color";
-
-    /** Prints the terms indexed under the given field. */
-    static void printFieldTerms(LeafReader reader, String field) throws IOException {
-        System.out.println("Terms for field: " + field);
-        final TermsEnum te = reader.terms(field).iterator();
-        BytesRef scratch;
-        while ((scratch = te.next()) != null) {
-            System.out.println("  " + scratch.utf8ToString());
-        }
-    }
 
     @SuppressWarnings("resource")
     public static void main(String[] args) throws Exception {
@@ -76,19 +68,19 @@ public class AnnotationSearchExample {
                 textStream.newSinkTokenStream(new ColorsSinkFilter()), COLOR_ANNOT_TERM);
 
         final Document doc = new Document();
-        doc.add(new TextField("text", textStream));
-        doc.add(new TextField("annot", colorAnnotationStream));
+        doc.add(new TextField(TEXT_FIELD, textStream));
+        doc.add(new TextField(ANNOT_FIELD, colorAnnotationStream));
         writer.addDocument(doc);
 
         writer.close();
 
         final DirectoryReader reader = DirectoryReader.open(dir);
-        final LeafReader ar = reader.leaves().get(0).reader(); // we only have one segment
-        printFieldTerms(ar, "text");
+        final LeafReader leaf = reader.leaves().get(0).reader(); // we only have one segment
+        IndexUtils.printFieldTerms(leaf, TEXT_FIELD);
         System.out.println();
 
         final ByteArrayDataInput in = new ByteArrayDataInput();
-        final PostingsEnum dape = ar.postings(new Term("annot", COLOR_ANNOT_TERM), PostingsEnum.PAYLOADS);
+        final PostingsEnum dape = leaf.postings(new Term(ANNOT_FIELD, COLOR_ANNOT_TERM), PostingsEnum.PAYLOADS);
         final int docID = dape.nextDoc();
         final int freq = dape.freq();
         System.out.println("Color annotation spans: doc=" + docID + ", freq=" + freq);
@@ -103,15 +95,17 @@ public class AnnotationSearchExample {
 
         System.out.println("\nsearching for 'red WITHIN color':");
         final Query redWithinColor = new org.apache.lucene.search.spans.SpanWithinQuery(
-                new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)), "text"),
-                new SpanTermQuery(new Term("text", "red")));
+                new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term(ANNOT_FIELD, COLOR_ANNOT_TERM)),
+                        TEXT_FIELD),
+                new SpanTermQuery(new Term(TEXT_FIELD, "red")));
         final TopDocs redWithinColorTopDocs = searcher.search(redWithinColor, 10);
         System.out.println(" num results: " + redWithinColorTopDocs.scoreDocs.length);
 
         System.out.println("\nsearching for 'ate WITHIN color':");
         final Query ateWithinColor = new SpanWithinQuery(
-                new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term("annot", COLOR_ANNOT_TERM)), "text"),
-                new SpanTermQuery(new Term("text", "ate")));
+                new FieldMaskingSpanQuery(new SpanAnnotationTermQuery(new Term(ANNOT_FIELD, COLOR_ANNOT_TERM)),
+                        TEXT_FIELD),
+                new SpanTermQuery(new Term(TEXT_FIELD, "ate")));
         final TopDocs ateWithinColorTopDocs = searcher.search(ateWithinColor, 10);
         System.out.println(" num results: " + ateWithinColorTopDocs.scoreDocs.length);
 
