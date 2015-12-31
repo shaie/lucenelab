@@ -48,8 +48,7 @@ public final class AnnotatingTokenFilter extends TokenFilter {
 
     @Override
     public boolean incrementToken() throws IOException {
-        if (!input.incrementToken())
-        {
+        if (!input.incrementToken()) {
             return false; // no more tokens
         }
 
