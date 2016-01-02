@@ -1,9 +1,13 @@
 package com.shaie.utils;
 
+import static com.shaie.utils.Utils.*;
+
 import java.io.IOException;
 
 import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.BytesRef;
 
 /*
@@ -31,11 +35,29 @@ public abstract class IndexUtils {
 
     /** Prints the terms indexed under the given field. */
     public static void printFieldTerms(LeafReader reader, String field) throws IOException {
-        System.out.println("Terms for field: " + field);
+        System.out.println(format("Terms for field [%s]:", field));
         final TermsEnum te = reader.terms(field).iterator();
         BytesRef scratch;
         while ((scratch = te.next()) != null) {
-            System.out.println("  " + scratch.utf8ToString());
+            System.out.println(format("  %s", scratch.utf8ToString()));
+        }
+    }
+
+    /** Prints the terms indexed under the given field. */
+    public static void printFieldTermsWithInfo(LeafReader reader, String field) throws IOException {
+        System.out.println(format("Terms for field [%s], with additional info:", field));
+        final TermsEnum te = reader.terms(field).iterator();
+        BytesRef scratch;
+        PostingsEnum postings = null;
+        while ((scratch = te.next()) != null) {
+            System.out.println(format("  %s", scratch.utf8ToString()));
+            postings = te.postings(postings, PostingsEnum.ALL);
+            for (postings.nextDoc(); postings.docID() != DocIdSetIterator.NO_MORE_DOCS; postings.nextDoc()) {
+                System.out.println(format("    doc=%d, freq=%d", postings.docID(), postings.freq()));
+                for (int i = 0; i < postings.freq(); i++) {
+                    System.out.println(format("      pos=%d", postings.nextPosition()));
+                }
+            }
         }
     }
 

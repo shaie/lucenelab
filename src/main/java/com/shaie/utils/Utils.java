@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 import com.google.common.io.Resources;
 
@@ -36,7 +37,7 @@ public abstract class Utils {
         try {
             return new File(Resources.getResource(resourceName).toURI());
             // return new File(Utils.class.getClassLoader().getResource(resourceName).toURI());
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
@@ -45,9 +46,14 @@ public abstract class Utils {
     public static Path getPathResource(String resourceName) {
         try {
             return Paths.get(Utils.class.getClassLoader().getResource(resourceName).toURI());
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /** Formats the given string using {@link Locale#ROOT}. */
+    public static String format(String format, Object... args) {
+        return String.format(Locale.ROOT, format, args);
     }
 
 }

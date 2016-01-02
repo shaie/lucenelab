@@ -61,9 +61,12 @@
       <artifact name="javax.servlet" ext="jar"/>
     </dependency>
 
+    <dependency org="com.google.guava" name="guava" rev="19.0" />
+
     <!-- test -->
     <dependency org="junit" name="junit" rev="4.12" />
     <dependency org="org.easytesting" name="fest-assert" rev="1.4" />
+    <dependency org="org.mockito" name="mockito-core" rev="1.9.5"/>
     
   </dependencies>
 </ivy-module>
