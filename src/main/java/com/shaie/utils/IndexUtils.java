@@ -33,29 +33,33 @@ public abstract class IndexUtils {
         // No instances should be created.
     }
 
-    /** Prints the terms indexed under the given field. */
-    public static void printFieldTerms(LeafReader reader, String field) throws IOException {
-        System.out.println(format("Terms for field [%s]:", field));
-        final TermsEnum te = reader.terms(field).iterator();
-        BytesRef scratch;
-        while ((scratch = te.next()) != null) {
-            System.out.println(format("  %s", scratch.utf8ToString()));
+    /** Prints the terms indexed under the given fields. */
+    public static void printFieldTerms(LeafReader reader, String... fields) throws IOException {
+        for (final String field : fields) {
+            System.out.println(format("Terms for field [%s]:", field));
+            final TermsEnum te = reader.terms(field).iterator();
+            BytesRef scratch;
+            while ((scratch = te.next()) != null) {
+                System.out.println(format("  %s", scratch.utf8ToString()));
+            }
         }
     }
 
-    /** Prints the terms indexed under the given field. */
-    public static void printFieldTermsWithInfo(LeafReader reader, String field) throws IOException {
-        System.out.println(format("Terms for field [%s], with additional info:", field));
-        final TermsEnum te = reader.terms(field).iterator();
-        BytesRef scratch;
-        PostingsEnum postings = null;
-        while ((scratch = te.next()) != null) {
-            System.out.println(format("  %s", scratch.utf8ToString()));
-            postings = te.postings(postings, PostingsEnum.ALL);
-            for (postings.nextDoc(); postings.docID() != DocIdSetIterator.NO_MORE_DOCS; postings.nextDoc()) {
-                System.out.println(format("    doc=%d, freq=%d", postings.docID(), postings.freq()));
-                for (int i = 0; i < postings.freq(); i++) {
-                    System.out.println(format("      pos=%d", postings.nextPosition()));
+    /** Prints the terms indexed under the given fields with full postings information. */
+    public static void printFieldTermsWithInfo(LeafReader reader, String... fields) throws IOException {
+        for (final String field : fields) {
+            System.out.println(format("Terms for field [%s], with additional info:", field));
+            final TermsEnum te = reader.terms(field).iterator();
+            BytesRef scratch;
+            PostingsEnum postings = null;
+            while ((scratch = te.next()) != null) {
+                System.out.println(format("  %s", scratch.utf8ToString()));
+                postings = te.postings(postings, PostingsEnum.ALL);
+                for (postings.nextDoc(); postings.docID() != DocIdSetIterator.NO_MORE_DOCS; postings.nextDoc()) {
+                    System.out.println(format("    doc=%d, freq=%d", postings.docID(), postings.freq()));
+                    for (int i = 0; i < postings.freq(); i++) {
+                        System.out.println(format("      pos=%d", postings.nextPosition()));
+                    }
                 }
             }
         }

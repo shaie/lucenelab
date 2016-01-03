@@ -1,4 +1,4 @@
-package com.shaie.annots;
+package com.shaie.annots.annotator;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,16 +17,23 @@ package com.shaie.annots;
  * limitations under the License.
  */
 
-/** An interface for annotating text. */
-public interface Annotator {
+/** A {@link OneWordAnnotator} which accepts only colors. */
+public class ColorAnnotator extends OneWordAnnotator {
 
-    /** Returns true iff the annotator accepts the given text, false otherwise. */
-    public boolean accept(String text);
+    /** Default list of colors. */
+    public static final String[] DEFAULT_COLORS = new String[] { "white", "navy", "blue", "aqua", "teal", "olive",
+            "green", "lime", "yellow", "orange", "red", "maroon", "fuchsia", "purple", "silver", "gray", "black",
+            "brown" };
 
-    /**
-     * Returns true iff the annotator accepts the given text, false otherwise. The text is read from the input array at
-     * start {@code offset} for length {@code len}.
-     */
-    public boolean accept(char[] text, int offset, int len);
+    private static final ColorAnnotator DEFAULT = new ColorAnnotator(DEFAULT_COLORS);
+
+    /** Returns a singleton {@link ColorAnnotator} which accepts only the {@link #DEFAULT_COLORS default colors}. */
+    public static final ColorAnnotator withDefaultColors() {
+        return DEFAULT;
+    }
+
+    public ColorAnnotator(String... colors) {
+        super(colors);
+    }
 
 }
