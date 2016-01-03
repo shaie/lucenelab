@@ -51,11 +51,7 @@ public abstract class IndexUtils {
     /** Prints the terms indexed under the given fields with full postings information. */
     public static void printFieldTermsWithInfo(LeafReader reader, String... fields) throws IOException {
         for (final String field : fields) {
-<<<<<<< HEAD
             System.out.println(format("Terms for field [%s], with positional info:", field));
-=======
-            System.out.println(format("Terms for field [%s], with additional info:", field));
->>>>>>> 67b87c85b6c2489e485d5f757eca25ce222249dc
             final TermsEnum te = reader.terms(field).iterator();
             BytesRef scratch;
             PostingsEnum postings = null;
@@ -63,19 +59,12 @@ public abstract class IndexUtils {
                 System.out.println(format("  %s", scratch.utf8ToString()));
                 postings = te.postings(postings, PostingsEnum.ALL);
                 for (postings.nextDoc(); postings.docID() != DocIdSetIterator.NO_MORE_DOCS; postings.nextDoc()) {
-<<<<<<< HEAD
                     final List<Integer> positions = Lists.newArrayList();
                     for (int i = 0; i < postings.freq(); i++) {
                         positions.add(postings.nextPosition());
                     }
                     System.out.println(
                             format("    doc=%d, freq=%d, pos=%s", postings.docID(), postings.freq(), positions));
-=======
-                    System.out.println(format("    doc=%d, freq=%d", postings.docID(), postings.freq()));
-                    for (int i = 0; i < postings.freq(); i++) {
-                        System.out.println(format("      pos=%d", postings.nextPosition()));
-                    }
->>>>>>> 67b87c85b6c2489e485d5f757eca25ce222249dc
                 }
             }
         }
