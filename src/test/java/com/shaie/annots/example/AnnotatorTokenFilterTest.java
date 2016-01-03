@@ -1,4 +1,4 @@
-package com.shaie.annots;
+package com.shaie.annots.example;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -45,7 +45,8 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.shaie.annots.ColorAnnotatorTokenFilterExample.AnnotatorTokenFilter;
+import com.shaie.annots.annotator.Annotator;
+import com.shaie.annots.example.AnnotatorTokenFilterExample.AnnotatorTokenFilter;
 
 /** Unit tests for {@link AnnotatorTokenFilter}. */
 public class AnnotatorTokenFilterTest {
