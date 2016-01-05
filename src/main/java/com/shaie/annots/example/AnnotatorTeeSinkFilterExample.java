@@ -20,15 +20,16 @@ package com.shaie.annots.example;
 import static com.shaie.utils.Utils.*;
 
 import java.io.IOException;
+import java.io.StringReader;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
-import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.sinks.TeeSinkTokenFilter;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
@@ -47,15 +48,13 @@ import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
-import com.google.common.collect.ImmutableMap;
-import com.shaie.annots.AnnotatingTokenFilter;
 import com.shaie.annots.AnnotatorTokenFilter;
 import com.shaie.annots.annotator.AnimalAnnotator;
 import com.shaie.annots.annotator.ColorAnnotator;
 import com.shaie.utils.IndexUtils;
 
-/** Demonstrates indexing of documents with annotations using {@link AnnotatorTokenFilter}. */
-public class AnnotatorTokenFilterExample {
+/** Demonstrates indexing of documents with annotations using {@link TeeSinkTokenFilter}. */
+public class AnnotatorTeeSinkFilterExample {
 
     private static final String COLOR_FIELD = "color";
     private static final String ANIMAL_FIELD = "animal";
@@ -64,7 +63,7 @@ public class AnnotatorTokenFilterExample {
     @SuppressWarnings("resource")
     public static void main(String[] args) throws Exception {
         final Directory dir = new RAMDirectory();
-        final Analyzer analyzer = createAnalyzer();
+        final Analyzer analyzer = new WhitespaceAnalyzer();
         final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
         final IndexWriter writer = new IndexWriter(dir, conf);
 
@@ -101,11 +100,21 @@ public class AnnotatorTokenFilterExample {
         reader.close();
     }
 
+    @SuppressWarnings("resource")
     private static void addDocument(IndexWriter writer, String text) throws IOException {
+        final Tokenizer tokenizer = new WhitespaceTokenizer();
+        tokenizer.setReader(new StringReader(text));
+        final TeeSinkTokenFilter textStream = new TeeSinkTokenFilter(tokenizer);
+        final TokenStream colorsStream = new AnnotatorTokenFilter(
+                textStream.newSinkTokenStream(), ColorAnnotator.withDefaultColors());
+        final TokenStream animalsStream = new AnnotatorTokenFilter(
+                textStream.newSinkTokenStream(), AnimalAnnotator.withDefaultAnimals());
+
         final Document doc = new Document();
-        doc.add(new TextField(TEXT_FIELD, text, Store.YES));
-        doc.add(new TextField(COLOR_FIELD, text, Store.NO));
-        doc.add(new TextField(ANIMAL_FIELD, text, Store.NO));
+        doc.add(new StoredField(TEXT_FIELD, text));
+        doc.add(new TextField(TEXT_FIELD, textStream));
+        doc.add(new TextField(COLOR_FIELD, colorsStream));
+        doc.add(new TextField(ANIMAL_FIELD, animalsStream));
         writer.addDocument(doc);
     }
 
@@ -122,45 +131,6 @@ public class AnnotatorTokenFilterExample {
         final SpanQuery brownText = new FieldMaskingSpanQuery(brown, TEXT_FIELD);
         final SpanQuery fox = new SpanTermQuery(new Term(TEXT_FIELD, "fox"));
         search(searcher, new SpanNearQuery(new SpanQuery[] { brownText, fox }, 1, true));
-    }
-
-    @SuppressWarnings("resource")
-    private static Analyzer createAnalyzer() {
-        final Analyzer colorAnnotatorAnalyzer = new ColorAnnotatorAnalyzer();
-        final Analyzer animalAnnotatorAnalyzer = new AnimalAnnotatorAnalyzer();
-        final Analyzer defaultAnalyzer = new WhitespaceAnalyzer();
-        return new PerFieldAnalyzerWrapper(defaultAnalyzer,
-                ImmutableMap.<String, Analyzer> of(
-                        COLOR_FIELD, colorAnnotatorAnalyzer,
-                        ANIMAL_FIELD, animalAnnotatorAnalyzer));
-    }
-
-    /**
-     * An {@link Analyzer} which chains {@link WhitespaceTokenizer} and {@link AnnotatingTokenFilter} with
-     * {@link ColorAnnotator}.
-     */
-    @SuppressWarnings("resource")
-    public static final class ColorAnnotatorAnalyzer extends Analyzer {
-        @Override
-        protected TokenStreamComponents createComponents(String fieldName) {
-            final Tokenizer tokenizer = new WhitespaceTokenizer();
-            final TokenStream stream = new AnnotatorTokenFilter(tokenizer, ColorAnnotator.withDefaultColors());
-            return new TokenStreamComponents(tokenizer, stream);
-        }
-    }
-
-    /**
-     * An {@link Analyzer} which chains {@link WhitespaceTokenizer} and {@link AnnotatingTokenFilter} with
-     * {@link AnimalAnnotator}.
-     */
-    @SuppressWarnings("resource")
-    public static final class AnimalAnnotatorAnalyzer extends Analyzer {
-        @Override
-        protected TokenStreamComponents createComponents(String fieldName) {
-            final Tokenizer tokenizer = new WhitespaceTokenizer();
-            final TokenStream stream = new AnnotatorTokenFilter(tokenizer, AnimalAnnotator.withDefaultAnimals());
-            return new TokenStreamComponents(tokenizer, stream);
-        }
     }
 
 }

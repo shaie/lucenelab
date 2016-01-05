@@ -45,8 +45,8 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.shaie.annots.AnnotatorTokenFilter;
 import com.shaie.annots.annotator.Annotator;
-import com.shaie.annots.example.AnnotatorTokenFilterExample.AnnotatorTokenFilter;
 
 /** Unit tests for {@link AnnotatorTokenFilter}. */
 public class AnnotatorTokenFilterTest {
@@ -75,7 +75,7 @@ public class AnnotatorTokenFilterTest {
     }
 
     @Test
-    public void does_not_return_any_token_if_no_color_tokens() throws IOException {
+    public void does_not_return_any_token_if_no_accepted_tokens() throws IOException {
         try (Tokenizer tok = new WhitespaceTokenizer();
                 TokenFilter f = new AnnotatorTokenFilter(tok, annotator)) {
             tok.setReader(new StringReader(ONE));
@@ -84,7 +84,7 @@ public class AnnotatorTokenFilterTest {
     }
 
     @Test
-    public void returns_color_token() throws IOException {
+    public void returns_accepted_token() throws IOException {
         try (Tokenizer tok = new WhitespaceTokenizer();
                 TokenFilter f = new AnnotatorTokenFilter(tok, annotator)) {
             stubAnnotator(ONE);
@@ -94,7 +94,7 @@ public class AnnotatorTokenFilterTest {
     }
 
     @Test
-    public void returns_all_color_tokens() throws IOException {
+    public void returns_all_accepted_tokens() throws IOException {
         try (Tokenizer tok = new WhitespaceTokenizer();
                 TokenFilter f = new AnnotatorTokenFilter(tok, annotator)) {
             stubAnnotator(ONE, THREE);
@@ -104,7 +104,7 @@ public class AnnotatorTokenFilterTest {
     }
 
     @Test
-    public void returns_tokens_when_only_color_tokens() throws IOException {
+    public void returns_tokens_when_only_accepted_tokens() throws IOException {
         try (Tokenizer tok = new WhitespaceTokenizer();
                 TokenFilter f = new AnnotatorTokenFilter(tok, annotator)) {
             stubAnnotator(ONE, TWO);
