@@ -1,7 +1,3 @@
-package com.shaie.solr.solrj;
-
-import org.apache.solr.client.solrj.response.SolrResponseBase;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,6 +14,9 @@ import org.apache.solr.client.solrj.response.SolrResponseBase;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.solrj;
+
+import org.apache.solr.client.solrj.response.SolrResponseBase;
 
 /** Base class for all Solr responses. */
 public abstract class SolrResponse<T extends SolrResponseBase> {

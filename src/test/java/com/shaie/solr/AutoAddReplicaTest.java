@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.shaie.solr;
 
 import static org.fest.assertions.Assertions.*;
@@ -17,23 +33,6 @@ import org.junit.Test;
 import com.shaie.solr.solrj.CollectionAdminHelper;
 import com.shaie.solr.utils.MiniSolrCloudClusterResource;
 import com.shaie.utils.Utils;
-
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 public class AutoAddReplicaTest {
 
@@ -132,7 +131,7 @@ public class AutoAddReplicaTest {
     public void new_node_can_take_over_all_replicas_all_collections_of_a_down_node() {
         solrCluster.startSolrNodes("node1", "node2");
         final String[] collections = new String[] { "mycollection1", "mycollection2" };
-        for (String collection : collections) {
+        for (final String collection : collections) {
             createCollectionAndWaitForRecoveries(collection);
             indexDocumentAndWaitForSync("1", collection);
         }
@@ -149,12 +148,12 @@ public class AutoAddReplicaTest {
                 solrClient.getZkStateReader()), collectionAdminHelper);
         final String node3Name = SolrCloudUtils.baseUrlToNodeName(solrCluster.getBaseUrl("node3"));
         recoveryUtils.takeOverDownNode(node3Name);
-        for (String collection : collections) {
+        for (final String collection : collections) {
             SolrCloudUtils.waitForReplicasToSync(collection, solrClient, WAIT_TIMEOUT_SECONDS);
         }
         assertThat(collectionsStateHelper.getAllNodeReplicas(node3Name).size()).isEqualTo(2);
 
-        for (String collection : collections) {
+        for (final String collection : collections) {
             verifyReplicasState(collection, 2, 0);
         }
     }
@@ -192,7 +191,7 @@ public class AutoAddReplicaTest {
     private void sleepSome(long sleepTime) {
         try {
             Thread.sleep(sleepTime);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new RuntimeException(e);
         }
     }

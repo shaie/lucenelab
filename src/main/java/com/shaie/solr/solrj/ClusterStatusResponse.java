@@ -1,18 +1,3 @@
-package com.shaie.solr.solrj;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.solr.common.cloud.Replica;
-import org.apache.solr.common.cloud.Slice;
-import org.apache.solr.common.util.NamedList;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -29,6 +14,20 @@ import com.google.common.collect.Maps;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.solrj;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.solr.common.cloud.Replica;
+import org.apache.solr.common.cloud.Slice;
+import org.apache.solr.common.util.NamedList;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public class ClusterStatusResponse extends CollectionAdminResponse {
 
@@ -57,8 +56,8 @@ public class ClusterStatusResponse extends CollectionAdminResponse {
 
     @SuppressWarnings("unchecked")
     private Map<String, Collection> getCollections(NamedList<Object> cluster) {
-        Map<String, Collection> collections = Maps.newHashMap();
-        for (Entry<String, Object> collectionEntry : (NamedList<Object>) cluster.get("collections")) {
+        final Map<String, Collection> collections = Maps.newHashMap();
+        for (final Entry<String, Object> collectionEntry : (NamedList<Object>) cluster.get("collections")) {
             final String name = collectionEntry.getKey();
             final Map<String, Object> collectionValue = (Map<String, Object>) collectionEntry.getValue();
             final int maxShardsPerNode = Integer.parseInt((String) collectionValue.get("maxShardsPerNode"));
@@ -75,7 +74,8 @@ public class ClusterStatusResponse extends CollectionAdminResponse {
     @SuppressWarnings("unchecked")
     private List<Slice> getSlices(final Map<String, Object> collectionValue) {
         final List<Slice> slices = Lists.newArrayList();
-        for (Entry<String, Object> shardEntry : ((Map<String, Object>) collectionValue.get("shards")).entrySet()) {
+        for (final Entry<String, Object> shardEntry : ((Map<String, Object>) collectionValue.get("shards"))
+                .entrySet()) {
             final Map<String, Object> shardValue = (Map<String, Object>) shardEntry.getValue();
             final Map<String, Replica> shardReplicas = getSliceReplicas(shardValue);
             slices.add(new Slice(shardEntry.getKey(), shardReplicas, shardValue));
@@ -86,7 +86,7 @@ public class ClusterStatusResponse extends CollectionAdminResponse {
     @SuppressWarnings("unchecked")
     private Map<String, Replica> getSliceReplicas(final Map<String, Object> shardValue) {
         final Map<String, Replica> shardReplicas = Maps.newHashMap();
-        for (Entry<String, Object> replicaEntry : ((Map<String, Object>) shardValue.get("replicas")).entrySet()) {
+        for (final Entry<String, Object> replicaEntry : ((Map<String, Object>) shardValue.get("replicas")).entrySet()) {
             final String replicaName = replicaEntry.getKey();
             final Replica replica = new Replica(replicaName, (Map<String, Object>) replicaEntry.getValue());
             shardReplicas.put(replicaName, replica);
@@ -167,7 +167,7 @@ public class ClusterStatusResponse extends CollectionAdminResponse {
         public String toString() {
             try {
                 return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(this);
-            } catch (JsonProcessingException e) {
+            } catch (final JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
         }

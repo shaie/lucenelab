@@ -1,5 +1,3 @@
-package com.shaie.suggest;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package com.shaie.suggest;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.suggest;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -74,7 +73,7 @@ public class ContextSuggestDemo {
     }
 
     private void buildSearchIndex() throws IOException {
-        IndexWriterConfig conf = new IndexWriterConfig(analyzer);
+        final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
         try (IndexWriter writer = new IndexWriter(indexDir, conf)) {
             Document doc = new Document();
             doc.add(new StringField("username", USER1_CONTEXT.utf8ToString(), Store.YES));
@@ -90,7 +89,7 @@ public class ContextSuggestDemo {
 
     private void buildSuggesterIndex() throws IOException {
         try (DirectoryReader reader = DirectoryReader.open(indexDir)) {
-            Dictionary dictionary = new DocumentDictionary(reader, "content", null, null, "username");
+            final Dictionary dictionary = new DocumentDictionary(reader, "content", null, null, "username");
             suggester.build(dictionary);
             suggester.refresh();
         }
@@ -98,8 +97,8 @@ public class ContextSuggestDemo {
 
     public void lookupNoContext() throws IOException {
         System.out.println("Running lookup() with no context:");
-        List<LookupResult> lookups = suggester.lookup("qu", (Set<BytesRef>) null, 10, true, true);
-        for (LookupResult lookup : lookups) {
+        final List<LookupResult> lookups = suggester.lookup("qu", (Set<BytesRef>) null, 10, true, true);
+        for (final LookupResult lookup : lookups) {
             System.out.println(lookup);
         }
         System.out.println();
@@ -107,15 +106,15 @@ public class ContextSuggestDemo {
 
     public void lookupWithContext(BytesRef context) throws IOException {
         System.out.println("Running lookup() with context [" + context.utf8ToString() + "]:");
-        List<LookupResult> lookups = suggester.lookup("qu", Collections.singleton(context), 10, true, true);
-        for (LookupResult lookup : lookups) {
+        final List<LookupResult> lookups = suggester.lookup("qu", Collections.singleton(context), 10, true, true);
+        for (final LookupResult lookup : lookups) {
             System.out.println(lookup);
         }
         System.out.println();
     }
 
     public static void main(String[] args) throws Exception {
-        ContextSuggestDemo suggestDemo = new ContextSuggestDemo();
+        final ContextSuggestDemo suggestDemo = new ContextSuggestDemo();
 
         suggestDemo.lookupNoContext();
         suggestDemo.lookupWithContext(USER1_CONTEXT);

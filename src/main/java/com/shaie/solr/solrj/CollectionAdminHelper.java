@@ -1,12 +1,3 @@
-package com.shaie.solr.solrj;
-
-import java.io.IOException;
-
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.request.CollectionAdminRequest;
-import org.apache.solr.client.solrj.response.CollectionAdminResponse;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -23,6 +14,14 @@ import org.apache.solr.client.solrj.response.CollectionAdminResponse;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.solrj;
+
+import java.io.IOException;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.request.CollectionAdminRequest;
+import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 
 /** A helper class for interacting with Solr collections. */
 public class CollectionAdminHelper {
@@ -111,7 +110,8 @@ public class CollectionAdminHelper {
         }
 
         try {
-            final CollectionAdminRequest.DeleteReplica deleteReplicaRequest = new CollectionAdminRequest.DeleteReplica();
+            final CollectionAdminRequest.DeleteReplica deleteReplicaRequest =
+                    new CollectionAdminRequest.DeleteReplica();
             deleteReplicaRequest.setCollectionName(collectionName);
             deleteReplicaRequest.setShardName(shardName);
             deleteReplicaRequest.setReplica(replicaName);

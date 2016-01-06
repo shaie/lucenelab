@@ -1,13 +1,3 @@
-package com.shaie.utils;
-
-import java.io.File;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Locale;
-
-import com.google.common.io.Resources;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,6 +14,15 @@ import com.google.common.io.Resources;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.utils;
+
+import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Locale;
+
+import com.google.common.io.Resources;
 
 /** General utilities. */
 public abstract class Utils {

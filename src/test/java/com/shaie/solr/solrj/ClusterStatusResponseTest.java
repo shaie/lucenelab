@@ -1,5 +1,3 @@
-package com.shaie.solr.solrj;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,9 +14,11 @@ package com.shaie.solr.solrj;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.solrj;
+
+import static org.fest.assertions.Assertions.*;
 
 import static com.shaie.solr.SolrCloudUtils.*;
-import static org.fest.assertions.Assertions.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -90,7 +90,7 @@ public class ClusterStatusResponseTest {
         assertThat(collection1.getAliases()).containsOnly("both");
         final List<Slice> collection1Slices = collection1.getSlices();
         assertThat(collection1Slices.size()).isEqualTo(2);
-        for (Slice slice : collection1Slices) {
+        for (final Slice slice : collection1Slices) {
             assertThat(slice.getReplicas().size()).isEqualTo(2);
         }
     }
@@ -100,7 +100,7 @@ public class ClusterStatusResponseTest {
         assertThat(collection2.getAliases()).containsOnly("both");
         final List<Slice> collection1Slices = collection2.getSlices();
         assertThat(collection1Slices.size()).isEqualTo(3);
-        for (Slice slice : collection1Slices) {
+        for (final Slice slice : collection1Slices) {
             assertThat(slice.getReplicas().size()).isEqualTo(1);
         }
     }

@@ -1,11 +1,3 @@
-package com.shaie.solr;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.shaie.solr.solrj.CollectionAdminHelper;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -22,6 +14,13 @@ import com.shaie.solr.solrj.CollectionAdminHelper;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import com.shaie.solr.solrj.CollectionAdminHelper;
 
 /** Utilities for handling Solr node recoveries. */
 public class SolrRecoveryUtils {
@@ -29,7 +28,8 @@ public class SolrRecoveryUtils {
     private final CollectionsStateHelper collectionsStateHelper;
     private final CollectionAdminHelper collectionAdminHelper;
 
-    public SolrRecoveryUtils(CollectionsStateHelper collectionsStateHelper, CollectionAdminHelper collectionAdminHelper) {
+    public SolrRecoveryUtils(CollectionsStateHelper collectionsStateHelper,
+            CollectionAdminHelper collectionAdminHelper) {
         this.collectionsStateHelper = collectionsStateHelper;
         this.collectionAdminHelper = collectionAdminHelper;
     }
@@ -39,7 +39,7 @@ public class SolrRecoveryUtils {
         final Map<String, List<ReplicaInfo>> downNodes = collectionsStateHelper.getDownReplicas();
         if (!downNodes.isEmpty()) {
             final Entry<String, List<ReplicaInfo>> downNode = downNodes.entrySet().iterator().next();
-            for (ReplicaInfo replicaInfo : downNode.getValue()) {
+            for (final ReplicaInfo replicaInfo : downNode.getValue()) {
                 final String collectionName = replicaInfo.getCollectionName();
                 final String shardName = replicaInfo.getShardName();
                 collectionAdminHelper.addReplica(collectionName, shardName, nodeName);

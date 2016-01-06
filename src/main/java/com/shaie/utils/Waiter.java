@@ -1,7 +1,3 @@
-package com.shaie.utils;
-
-import java.util.concurrent.TimeUnit;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,6 +14,9 @@ import java.util.concurrent.TimeUnit;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.utils;
+
+import java.util.concurrent.TimeUnit;
 
 /** Wait for some condition to become true, or for a timeout to expire. */
 public class Waiter {

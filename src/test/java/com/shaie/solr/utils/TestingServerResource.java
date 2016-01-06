@@ -1,13 +1,3 @@
-package com.shaie.solr.utils;
-
-import java.io.IOException;
-
-import org.apache.curator.test.TestingServer;
-import org.junit.rules.ExternalResource;
-
-import com.google.common.base.Throwables;
-import com.shaie.solr.SolrCloudUtils;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,6 +14,15 @@ import com.shaie.solr.SolrCloudUtils;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.utils;
+
+import java.io.IOException;
+
+import org.apache.curator.test.TestingServer;
+import org.junit.rules.ExternalResource;
+
+import com.google.common.base.Throwables;
+import com.shaie.solr.SolrCloudUtils;
 
 public class TestingServerResource extends ExternalResource {
 
@@ -33,7 +32,7 @@ public class TestingServerResource extends ExternalResource {
         try {
             zkServer = new TestingServer(false);
             System.setProperty(SolrCloudUtils.ZK_HOST_PROP_NAME, zkServer.getConnectString());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw Throwables.propagate(e);
         }
     }
@@ -47,7 +46,7 @@ public class TestingServerResource extends ExternalResource {
     protected void after() {
         try {
             zkServer.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException(e);
         }
     }

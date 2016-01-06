@@ -1,5 +1,3 @@
-package com.shaie.annots;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -16,6 +14,7 @@ package com.shaie.annots;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.annots;
 
 import static org.fest.assertions.Assertions.*;
 import static org.mockito.Matchers.*;
@@ -45,7 +44,6 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.shaie.annots.AnnotatorTokenFilter;
 import com.shaie.annots.annotator.Annotator;
 
 /** Unit tests for {@link AnnotatorTokenFilter}. */

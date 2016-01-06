@@ -1,18 +1,3 @@
-package com.shaie.utils;
-
-import static com.shaie.utils.Utils.*;
-
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.lucene.index.LeafReader;
-import org.apache.lucene.index.PostingsEnum;
-import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.util.BytesRef;
-
-import com.google.common.collect.Lists;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -29,6 +14,20 @@ import com.google.common.collect.Lists;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.utils;
+
+import static com.shaie.utils.Utils.*;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.util.BytesRef;
+
+import com.google.common.collect.Lists;
 
 public abstract class IndexUtils {
 

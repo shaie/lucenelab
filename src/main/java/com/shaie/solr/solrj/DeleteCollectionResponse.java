@@ -1,11 +1,3 @@
-package com.shaie.solr.solrj;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-
-import org.apache.solr.common.util.NamedList;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -22,6 +14,13 @@ import org.apache.solr.common.util.NamedList;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.solrj;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+
+import org.apache.solr.common.util.NamedList;
 
 public class DeleteCollectionResponse extends CollectionAdminResponse {
 
@@ -32,7 +31,7 @@ public class DeleteCollectionResponse extends CollectionAdminResponse {
 
         if (isSuccess()) {
             coreNames = new ArrayList<>();
-            for (Entry<String, Object> entry : getSuccessEntry(rawResponse)) {
+            for (final Entry<String, Object> entry : getSuccessEntry(rawResponse)) {
                 coreNames.add(entry.getKey());
             }
         } else {
@@ -46,7 +45,8 @@ public class DeleteCollectionResponse extends CollectionAdminResponse {
     }
 
     @SuppressWarnings("unchecked")
-    private NamedList<Object> getSuccessEntry(org.apache.solr.client.solrj.response.CollectionAdminResponse rawResponse) {
+    private NamedList<Object> getSuccessEntry(
+            org.apache.solr.client.solrj.response.CollectionAdminResponse rawResponse) {
         return (NamedList<Object>) rawResponse.getResponse().get("success");
     }
 

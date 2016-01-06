@@ -1,7 +1,3 @@
-package com.shaie.annots.example;
-
-import static com.shaie.annots.PreAnnotatedTokenFilter.*;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,7 +14,9 @@ import static com.shaie.annots.PreAnnotatedTokenFilter.*;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.annots.example;
 
+import static com.shaie.annots.PreAnnotatedTokenFilter.*;
 import static com.shaie.utils.Utils.*;
 
 import java.io.IOException;

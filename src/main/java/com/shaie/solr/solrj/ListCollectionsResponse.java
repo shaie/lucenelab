@@ -1,12 +1,3 @@
-package com.shaie.solr.solrj;
-
-import java.util.List;
-import java.util.Set;
-
-import org.apache.solr.common.util.NamedList;
-
-import com.google.common.collect.ImmutableSet;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -23,6 +14,14 @@ import com.google.common.collect.ImmutableSet;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.solrj;
+
+import java.util.List;
+import java.util.Set;
+
+import org.apache.solr.common.util.NamedList;
+
+import com.google.common.collect.ImmutableSet;
 
 /** A {@link SolrResponse} for {@link org.apache.solr.client.solrj.request.CollectionAdminRequest.List} requests. */
 public class ListCollectionsResponse extends CollectionAdminResponse {

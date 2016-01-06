@@ -1,17 +1,3 @@
-package com.shaie.solr.utils;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.curator.test.TestingServer;
-import org.junit.rules.ExternalResource;
-
-import com.google.common.base.Throwables;
-import com.google.common.io.Files;
-import com.shaie.solr.MiniSolrCloudCluster;
-import com.shaie.solr.SolrCloudUtils;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -28,6 +14,19 @@ import com.shaie.solr.SolrCloudUtils;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.solr.utils;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.curator.test.TestingServer;
+import org.junit.rules.ExternalResource;
+
+import com.google.common.base.Throwables;
+import com.google.common.io.Files;
+import com.shaie.solr.MiniSolrCloudCluster;
+import com.shaie.solr.SolrCloudUtils;
 
 /** Manages a {@link MiniSolrCloudCluster} and a {@link TestingServer}. */
 public class MiniSolrCloudClusterResource extends ExternalResource {

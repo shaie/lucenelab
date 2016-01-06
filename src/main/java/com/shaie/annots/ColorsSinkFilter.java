@@ -1,7 +1,3 @@
-package com.shaie.annots;
-
-import java.io.IOException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,6 +14,9 @@ import java.io.IOException;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.shaie.annots;
+
+import java.io.IOException;
 
 import org.apache.lucene.analysis.sinks.TeeSinkTokenFilter.SinkFilter;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
