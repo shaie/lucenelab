@@ -19,19 +19,15 @@ package com.shaie.annots;
 import static com.google.common.base.Preconditions.*;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.store.ByteArrayDataOutput;
 import org.apache.lucene.store.DataOutput;
 import org.apache.lucene.util.BytesRef;
@@ -154,38 +150,6 @@ public final class PreAnnotatedTokenFilter extends TokenFilter {
     private void updateCurrentStartEnd() {
         curStart = markers[pairIdx];
         curEnd = curStart + markers[pairIdx + 1] - 1;
-    }
-
-    @SuppressWarnings("resource")
-    public static void main(String[] args) throws Exception {
-        final String text = "quick rosy brown fox and a pale violet red dog";
-        final int[] annotations = new int[] { 6, 3, 1, 2, 6, 2, 2, 1, 7, 1, 8, 1 };
-
-        final Tokenizer tok = new WhitespaceTokenizer();
-        tok.setReader(new StringReader(text));
-        final TokenStream ts = new PreAnnotatedTokenFilter(tok, annotations);
-
-        final CharTermAttribute termAtt = ts.addAttribute(CharTermAttribute.class);
-        final PositionIncrementAttribute posIncrAtt = ts.addAttribute(PositionIncrementAttribute.class);
-        final PayloadAttribute payloadAtt = ts.addAttribute(PayloadAttribute.class);
-        final ByteArrayDataInput in = new ByteArrayDataInput();
-
-        ts.reset();
-        int pos = -1;
-        int len = -1;
-        while (ts.incrementToken()) {
-            pos += posIncrAtt.getPositionIncrement();
-            final BytesRef payload = payloadAtt.getPayload();
-            if (payload != null) {
-                in.reset(payload.bytes);
-                len = in.readVInt();
-            } else {
-                len = -1;
-            }
-            System.out.println("term=" + termAtt + " pos=" + pos + ((len != -1) ? " len=" + len : ""));
-        }
-        ts.end();
-        ts.close();
     }
 
     /**
