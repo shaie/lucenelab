@@ -19,7 +19,8 @@ package com.shaie.utils;
 import static com.shaie.utils.Utils.*;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.PostingsEnum;
@@ -27,7 +28,7 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.BytesRef;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public abstract class IndexUtils {
 
@@ -58,12 +59,27 @@ public abstract class IndexUtils {
                 System.out.println(format("  %s", scratch.utf8ToString()));
                 postings = te.postings(postings, PostingsEnum.ALL);
                 for (postings.nextDoc(); postings.docID() != DocIdSetIterator.NO_MORE_DOCS; postings.nextDoc()) {
-                    final List<Integer> positions = Lists.newArrayList();
+                    final Map<Integer, BytesRef> positions = Maps.newTreeMap();
+                    boolean addedPayload = false;
                     for (int i = 0; i < postings.freq(); i++) {
-                        positions.add(postings.nextPosition());
+                        final int pos = postings.nextPosition();
+                        final BytesRef payload = postings.getPayload();
+                        if (payload != null) {
+                            positions.put(pos, BytesRef.deepCopyOf(payload));
+                            addedPayload = true;
+                        } else {
+                            positions.put(pos, null);
+                        }
                     }
-                    System.out.println(
-                            format("    doc=%d, freq=%d, pos=%s", postings.docID(), postings.freq(), positions));
+                    if (addedPayload) {
+                        System.out.println(format("    doc=%d, freq=%d", postings.docID(), postings.freq(), positions));
+                        for (final Entry<Integer, BytesRef> e : positions.entrySet()) {
+                            System.out.println(format("      pos=%d, payload=%s", e.getKey(), e.getValue()));
+                        }
+                    } else {
+                        System.out.println(format("    doc=%d, freq=%d, pos=%s", postings.docID(), postings.freq(),
+                                positions.keySet()));
+                    }
                 }
             }
         }
