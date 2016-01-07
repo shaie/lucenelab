@@ -48,9 +48,9 @@ import org.apache.lucene.store.RAMDirectory;
 
 import com.google.common.collect.ImmutableMap;
 import com.shaie.annots.AnnotatingTokenFilter;
-import com.shaie.annots.AnnotatorTokenFilter;
 import com.shaie.annots.annotator.AnimalAnnotator;
 import com.shaie.annots.annotator.ColorAnnotator;
+import com.shaie.annots.filter.AnnotatorTokenFilter;
 import com.shaie.utils.IndexUtils;
 
 /** Demonstrates indexing of documents with annotations using {@link AnnotatorTokenFilter}. */
@@ -120,7 +120,7 @@ public class AnnotatorTokenFilterExample {
         final SpanQuery brown = new SpanTermQuery(new Term(COLOR_FIELD, "brown"));
         final SpanQuery brownText = new FieldMaskingSpanQuery(brown, TEXT_FIELD);
         final SpanQuery fox = new SpanTermQuery(new Term(TEXT_FIELD, "fox"));
-        search(searcher, new SpanNearQuery(new SpanQuery[] { brownText, fox }, 1, true));
+        search(searcher, new SpanNearQuery(new SpanQuery[] { brownText, fox }, 0, true));
     }
 
     @SuppressWarnings("resource")

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.shaie.annots;
+package com.shaie.annots.filter;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -25,106 +25,93 @@ import java.util.List;
 
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.store.ByteArrayDataOutput;
-import org.apache.lucene.store.DataOutput;
-import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.analysis.util.FilteringTokenFilter;
 import org.testng.collections.Lists;
 
 /**
- * A {@link TokenFilter} which keeps only tokens with positions that are covered by a given array of annotation
- * positions and lengths. For example, if you process the text "quick brown fox and a red dog", and you give it the
- * array <code>[0,3,5,2]</code> (two annotations, {@code pos=0,len=3} and {@code pos=5,len=2}), then it will keep only
+ * A {@link TokenFilter} which keeps only tokens with positions that are covered by a given array of annotation markers
+ * and lengths. For example, if you process the text "quick brown fox and a red dog", and you give it the array
+ * <code>[0,3,5,2]</code> (two annotations, {@code pos=0,len=3} and {@code pos=5,len=2}), then it will keep only the
  * tokens: "quick", "brown", "fox", "red", "dog".
- * <p>
- * In addition, this filter outputs a special {@link #ANY_ANNOTATION_TERM} token, with its position set to the start of
- * the annotation and a {@link PayloadAttribute} with the annotation length, encoded as {@link DataOutput#writeVInt(int)
- * VInt}. So for the above example and annotations, it will output the token with {@code pos=0,payload=[3]} and
- * {@code pos=5,payload=[2]} .
  */
-public final class PreAnnotatedTokenFilter extends TokenFilter {
+public final class SimplePreAnnotatedTokenFilter extends FilteringTokenFilter {
 
-    public static final String ANY_ANNOTATION_TERM = "_any_";
+    // public static final String ANY_ANNOTATION_TERM = "_any_";
 
-    private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
+    // private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
     private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
-    private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
+    // private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
 
-    private final BytesRef payloadBytes = new BytesRef(5); // Maximum number of bytes for VInt
-    private final ByteArrayDataOutput out = new ByteArrayDataOutput(payloadBytes.bytes);
+    // private final BytesRef payloadBytes = new BytesRef(5); // Maximum number of bytes for VInt
+    // private final ByteArrayDataOutput out = new ByteArrayDataOutput(payloadBytes.bytes);
     private final int[] markers;
 
-    private int skippedPositions;
     private int absPosition;
     private int curStart;
     private int curEnd;
     private int pairIdx;
-    private State state = null;
 
-    public PreAnnotatedTokenFilter(TokenStream input, int... markers) {
+    public SimplePreAnnotatedTokenFilter(TokenStream input, int... markers) {
         super(input);
         checkArgument(markers != null && markers.length > 0, "annotation markers cannot be null or empty");
         this.markers = getSortedFilteredMarkers(markers);
     }
 
     @Override
-    public boolean incrementToken() throws IOException {
-        if (state != null) {
-            outputFirstAnnotatedTerm();
-            return true;
-        }
-
-        skippedPositions = 0;
-        while (input.incrementToken()) {
-            final int posIncr = posIncrAtt.getPositionIncrement();
-            absPosition += posIncr;
-            if (acceptCurrentToken()) {
-                posIncrAtt.setPositionIncrement(posIncr + skippedPositions);
-                // Output the ANY_ANNOTATION_TERM term first
-                if (absPosition == curStart) {
-                    outputAnyTerm();
-                }
-                return true;
-            }
-            skippedPositions += posIncr;
-        }
-        return false;
+    protected boolean accept() throws IOException {
+        absPosition += posIncrAtt.getPositionIncrement();
+        return acceptCurrentToken();
     }
+
+    // @Override
+    // public boolean incrementToken() throws IOException {
+    // if (state != null) {
+    // outputFirstAnnotatedTerm();
+    // return true;
+    // }
+    //
+    // skippedPositions = 0;
+    // while (input.incrementToken()) {
+    // final int posIncr = posIncrAtt.getPositionIncrement();
+    // absPosition += posIncr;
+    // if (acceptCurrentToken()) {
+    // posIncrAtt.setPositionIncrement(posIncr + skippedPositions);
+    // // Output the ANY_ANNOTATION_TERM term first
+    // if (absPosition == curStart) {
+    // outputAnyTerm();
+    // }
+    // return true;
+    // }
+    // skippedPositions += posIncr;
+    // }
+    // return false;
+    // }
 
     @Override
     public void reset() throws IOException {
         super.reset();
-        skippedPositions = 0;
         absPosition = -1;
         pairIdx = 0;
         updateCurrentStartEnd();
-        state = null;
     }
 
-    @Override
-    public void end() throws IOException {
-        super.end();
-        posIncrAtt.setPositionIncrement(posIncrAtt.getPositionIncrement() + skippedPositions);
-    }
-
-    private void outputFirstAnnotatedTerm() {
-        restoreState(state);
-        state = null;
-        // Output first annotated term at same position as ANY_ANNOTATION_TERM
-        posIncrAtt.setPositionIncrement(0);
-    }
-
-    /** Update the payload attribute for the {@link #ANY_ANNOTATION_TERM}. */
-    private void outputAnyTerm() throws IOException {
-        state = captureState();
-        termAtt.setEmpty().append(ANY_ANNOTATION_TERM);
-        out.reset(payloadBytes.bytes);
-        out.writeVInt(curEnd - curStart + 1);
-        payloadBytes.length = out.getPosition();
-        payloadAtt.setPayload(payloadBytes);
-    }
+    // private void outputFirstAnnotatedTerm() {
+    // restoreState(state);
+    // state = null;
+    // // Output first annotated term at same position as ANY_ANNOTATION_TERM
+    // posIncrAtt.setPositionIncrement(0);
+    // }
+    //
+    // /** Update the payload attribute for the {@link #ANY_ANNOTATION_TERM}. */
+    // private void outputAnyTerm() throws IOException {
+    // state = captureState();
+    // termAtt.setEmpty().append(ANY_ANNOTATION_TERM);
+    // out.reset(payloadBytes.bytes);
+    // out.writeVInt(curEnd - curStart + 1);
+    // payloadBytes.length = out.getPosition();
+    // payloadAtt.setPayload(payloadBytes);
+    // }
 
     /** Is current token's position accepted by an annotation. */
     private boolean acceptCurrentToken() {

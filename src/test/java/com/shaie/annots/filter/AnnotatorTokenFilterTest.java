@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.shaie.annots;
+package com.shaie.annots.filter;
 
 import static org.fest.assertions.Assertions.*;
 import static org.mockito.Matchers.*;
@@ -45,6 +45,7 @@ import org.mockito.stubbing.Answer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.shaie.annots.annotator.Annotator;
+import com.shaie.annots.filter.AnnotatorTokenFilter;
 
 /** Unit tests for {@link AnnotatorTokenFilter}. */
 public class AnnotatorTokenFilterTest {

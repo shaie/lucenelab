@@ -16,7 +16,7 @@
  */
 package com.shaie.annots.example;
 
-import static com.shaie.annots.filter.PreAnnotatedTokenFilter.*;
+import static com.shaie.annots.filter.AnyAnnotationTokenFilter.*;
 import static com.shaie.utils.Utils.*;
 
 import java.io.IOException;
@@ -48,14 +48,15 @@ import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
-import com.shaie.annots.MultiPositionSpanQuery;
-import com.shaie.annots.filter.PreAnnotatedTokenFilter;
+import com.shaie.annots.filter.AnyAnnotationTokenFilter;
+import com.shaie.annots.filter.SimplePreAnnotatedTokenFilter;
 import com.shaie.utils.IndexUtils;
 
 /**
- * Demonstrates indexing of documents with pre-annotated text markers.
+ * Demonstrates indexing of documents with pre-annotated text markers. It uses {@link SimplePreAnnotatedTokenFilter} in
+ * combination with {@link AnyAnnotationTokenFilter}.
  */
-public class PreAnnotatedFilterExample {
+public class SimplePreAnnotatedFilterExample {
 
     private static final String COLOR_FIELD = "color";
     private static final String TEXT_FIELD = "text";
@@ -100,8 +101,8 @@ public class PreAnnotatedFilterExample {
         final Tokenizer tokenizer = new WhitespaceTokenizer();
         tokenizer.setReader(new StringReader(text));
         final TeeSinkTokenFilter textStream = new TeeSinkTokenFilter(tokenizer);
-        final TokenStream colorsStream =
-                new PreAnnotatedTokenFilter(textStream.newSinkTokenStream(), colorAnnotations);
+        final TokenStream colorsStream = new AnyAnnotationTokenFilter(
+                new SimplePreAnnotatedTokenFilter(textStream.newSinkTokenStream(), colorAnnotations));
 
         final Document doc = new Document();
         doc.add(new StoredField(TEXT_FIELD, text));
@@ -111,7 +112,7 @@ public class PreAnnotatedFilterExample {
     }
 
     private static void searchForColoredFox(IndexSearcher searcher) throws IOException {
-        final SpanQuery anyColor = new MultiPositionSpanQuery(new Term(COLOR_FIELD, ANY_ANNOTATION_TERM));
+        final SpanQuery anyColor = new SpanTermQuery(new Term(COLOR_FIELD, ANY_ANNOTATION_TERM));
         final SpanQuery colorAsText = new FieldMaskingSpanQuery(anyColor, TEXT_FIELD);
         final SpanQuery fox = new SpanTermQuery(new Term(TEXT_FIELD, "fox"));
         final SpanQuery coloredFox = new SpanNearQuery(new SpanQuery[] { colorAsText, fox }, 0, true);

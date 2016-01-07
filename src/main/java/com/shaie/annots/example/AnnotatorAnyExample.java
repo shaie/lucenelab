@@ -22,14 +22,11 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.sinks.TeeSinkTokenFilter;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
@@ -50,14 +47,15 @@ import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
-import com.shaie.annots.AnnotatorTokenFilter;
 import com.shaie.annots.annotator.AnimalAnnotator;
 import com.shaie.annots.annotator.ColorAnnotator;
+import com.shaie.annots.filter.AnnotatorTokenFilter;
+import com.shaie.annots.filter.AnyAnnotationTokenFilter;
 import com.shaie.utils.IndexUtils;
 
 /**
- * Demonstrates indexing of documents with annotations and adding a special term to denote that a document has any
- * annotation of a type.
+ * Demonstrates indexing of documents with annotations, using a combination of {@link AnnotatorTokenFilter} and
+ * {@link AnyAnnotationTokenFilter}.
  */
 public class AnnotatorAnyExample {
 
@@ -88,11 +86,11 @@ public class AnnotatorAnyExample {
 
         final IndexSearcher searcher = new IndexSearcher(reader);
 
-        search(searcher, qp.parse("animal:" + AnyAnnotationFilter.ANY_ANNOTATION_TERM + " AND color:"
-                + AnyAnnotationFilter.ANY_ANNOTATION_TERM));
+        search(searcher, qp.parse("animal:" + AnyAnnotationTokenFilter.ANY_ANNOTATION_TERM + " AND color:"
+                + AnyAnnotationTokenFilter.ANY_ANNOTATION_TERM));
         System.out.println();
 
-        search(searcher, qp.parse("animal:" + AnyAnnotationFilter.ANY_ANNOTATION_TERM + " AND color:red"));
+        search(searcher, qp.parse("animal:" + AnyAnnotationTokenFilter.ANY_ANNOTATION_TERM + " AND color:red"));
         System.out.println();
 
         searchForRedAnimal(searcher);
@@ -106,9 +104,9 @@ public class AnnotatorAnyExample {
         final Tokenizer tokenizer = new WhitespaceTokenizer();
         tokenizer.setReader(new StringReader(text));
         final TeeSinkTokenFilter textStream = new TeeSinkTokenFilter(tokenizer);
-        final TokenStream colorsStream = new AnyAnnotationFilter(new AnnotatorTokenFilter(
+        final TokenStream colorsStream = new AnyAnnotationTokenFilter(new AnnotatorTokenFilter(
                 textStream.newSinkTokenStream(), ColorAnnotator.withDefaultColors()));
-        final TokenStream animalsStream = new AnyAnnotationFilter(new AnnotatorTokenFilter(
+        final TokenStream animalsStream = new AnyAnnotationTokenFilter(new AnnotatorTokenFilter(
                 textStream.newSinkTokenStream(), AnimalAnnotator.withDefaultAnimals()));
 
         final Document doc = new Document();
@@ -122,8 +120,8 @@ public class AnnotatorAnyExample {
     private static void searchForRedAnimal(IndexSearcher searcher) throws IOException {
         final SpanQuery red = new SpanTermQuery(new Term(COLOR_FIELD, "red"));
         final SpanQuery redColorAsAnimal = new FieldMaskingSpanQuery(red, ANIMAL_FIELD);
-        final SpanQuery anyAnimal = new SpanTermQuery(new Term(ANIMAL_FIELD, AnyAnnotationFilter.ANY_ANNOTATION_TERM));
-        final SpanQuery redAnimals = new SpanNearQuery(new SpanQuery[] { redColorAsAnimal, anyAnimal }, 1, true);
+        final SpanQuery anyAnimal = new SpanTermQuery(new Term(ANIMAL_FIELD, AnyAnnotationTokenFilter.ANY_ANNOTATION_TERM));
+        final SpanQuery redAnimals = new SpanNearQuery(new SpanQuery[] { redColorAsAnimal, anyAnimal }, 0, true);
         search(searcher, redAnimals);
     }
 
@@ -133,40 +131,6 @@ public class AnnotatorAnyExample {
         for (final ScoreDoc sd : results.scoreDocs) {
             System.out.println(format("  doc=%d, text=%s", sd.doc, searcher.doc(sd.doc).get(TEXT_FIELD)));
         }
-    }
-
-    private static final class AnyAnnotationFilter extends TokenFilter {
-
-        public static final String ANY_ANNOTATION_TERM = "_any_";
-
-        private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
-        private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
-
-        private boolean addedOrigTerm = false;
-
-        public AnyAnnotationFilter(TokenStream input) {
-            super(input);
-        }
-
-        @Override
-        public boolean incrementToken() throws IOException {
-            if (!addedOrigTerm) {
-                addedOrigTerm = true;
-                return input.incrementToken();
-            }
-
-            termAtt.setEmpty().append(ANY_ANNOTATION_TERM);
-            posIncrAtt.setPositionIncrement(0); // Add this term at the same position
-            addedOrigTerm = false;
-            return true;
-        }
-
-        @Override
-        public void reset() throws IOException {
-            addedOrigTerm = false;
-            super.reset();
-        }
-
     }
 
 }

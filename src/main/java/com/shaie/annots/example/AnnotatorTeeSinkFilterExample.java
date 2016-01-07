@@ -47,9 +47,9 @@ import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
-import com.shaie.annots.AnnotatorTokenFilter;
 import com.shaie.annots.annotator.AnimalAnnotator;
 import com.shaie.annots.annotator.ColorAnnotator;
+import com.shaie.annots.filter.AnnotatorTokenFilter;
 import com.shaie.utils.IndexUtils;
 
 /** Demonstrates indexing of documents with annotations using {@link TeeSinkTokenFilter}. */
