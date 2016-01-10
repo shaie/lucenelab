@@ -48,11 +48,13 @@ public final class PreAnnotatedTokenFilter extends TokenFilter {
 
     public static final String ANY_ANNOTATION_TERM = "_any_";
 
+    private static final int MAX_BYTES_IN_VINT = 5;
+
     private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
     private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
     private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
 
-    private final BytesRef payloadBytes = new BytesRef(5); // Maximum number of bytes for VInt
+    private final BytesRef payloadBytes = new BytesRef(MAX_BYTES_IN_VINT);
     private final ByteArrayDataOutput out = new ByteArrayDataOutput(payloadBytes.bytes);
     private final int[] markers;
 

@@ -37,14 +37,7 @@ import org.testng.collections.Lists;
  */
 public final class SimplePreAnnotatedTokenFilter extends FilteringTokenFilter {
 
-    // public static final String ANY_ANNOTATION_TERM = "_any_";
-
-    // private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
     private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
-    // private final PayloadAttribute payloadAtt = addAttribute(PayloadAttribute.class);
-
-    // private final BytesRef payloadBytes = new BytesRef(5); // Maximum number of bytes for VInt
-    // private final ByteArrayDataOutput out = new ByteArrayDataOutput(payloadBytes.bytes);
     private final int[] markers;
 
     private int absPosition;
@@ -64,30 +57,6 @@ public final class SimplePreAnnotatedTokenFilter extends FilteringTokenFilter {
         return acceptCurrentToken();
     }
 
-    // @Override
-    // public boolean incrementToken() throws IOException {
-    // if (state != null) {
-    // outputFirstAnnotatedTerm();
-    // return true;
-    // }
-    //
-    // skippedPositions = 0;
-    // while (input.incrementToken()) {
-    // final int posIncr = posIncrAtt.getPositionIncrement();
-    // absPosition += posIncr;
-    // if (acceptCurrentToken()) {
-    // posIncrAtt.setPositionIncrement(posIncr + skippedPositions);
-    // // Output the ANY_ANNOTATION_TERM term first
-    // if (absPosition == curStart) {
-    // outputAnyTerm();
-    // }
-    // return true;
-    // }
-    // skippedPositions += posIncr;
-    // }
-    // return false;
-    // }
-
     @Override
     public void reset() throws IOException {
         super.reset();
@@ -95,23 +64,6 @@ public final class SimplePreAnnotatedTokenFilter extends FilteringTokenFilter {
         pairIdx = 0;
         updateCurrentStartEnd();
     }
-
-    // private void outputFirstAnnotatedTerm() {
-    // restoreState(state);
-    // state = null;
-    // // Output first annotated term at same position as ANY_ANNOTATION_TERM
-    // posIncrAtt.setPositionIncrement(0);
-    // }
-    //
-    // /** Update the payload attribute for the {@link #ANY_ANNOTATION_TERM}. */
-    // private void outputAnyTerm() throws IOException {
-    // state = captureState();
-    // termAtt.setEmpty().append(ANY_ANNOTATION_TERM);
-    // out.reset(payloadBytes.bytes);
-    // out.writeVInt(curEnd - curStart + 1);
-    // payloadBytes.length = out.getPosition();
-    // payloadAtt.setPayload(payloadBytes);
-    // }
 
     /** Is current token's position accepted by an annotation. */
     private boolean acceptCurrentToken() {
@@ -140,8 +92,8 @@ public final class SimplePreAnnotatedTokenFilter extends FilteringTokenFilter {
     }
 
     /**
-     * Returns a sorted list of annotation pairs (pos + len), and also filters annotation infos that are covered by
-     * others. E.g. the annotation info [5,1] is covered by the annotation [4,3] and therefore is redundant to keep.
+     * Returns a sorted list of annotation pairs (pos + len), and also filters annotation markers that are covered by
+     * others. E.g. the annotation marker [5,1] is covered by the annotation [4,3] and therefore is redundant to keep.
      */
     private static int[] getSortedFilteredMarkers(int... annotations) {
         if (annotations == null || annotations.length == 0) {

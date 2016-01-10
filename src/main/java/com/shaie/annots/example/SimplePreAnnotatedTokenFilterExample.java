@@ -56,7 +56,7 @@ import com.shaie.utils.IndexUtils;
  * Demonstrates indexing of documents with pre-annotated text markers. It uses {@link SimplePreAnnotatedTokenFilter} in
  * combination with {@link AnyAnnotationTokenFilter}.
  */
-public class SimplePreAnnotatedFilterExample {
+public class SimplePreAnnotatedTokenFilterExample {
 
     private static final String COLOR_FIELD = "color";
     private static final String TEXT_FIELD = "text";
