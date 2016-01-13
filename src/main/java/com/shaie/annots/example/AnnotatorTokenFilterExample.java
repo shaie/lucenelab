@@ -47,7 +47,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
 import com.google.common.collect.ImmutableMap;
-import com.shaie.annots.AnnotatingTokenFilter;
 import com.shaie.annots.annotator.AnimalAnnotator;
 import com.shaie.annots.annotator.ColorAnnotator;
 import com.shaie.annots.filter.AnnotatorTokenFilter;
@@ -135,7 +134,7 @@ public class AnnotatorTokenFilterExample {
     }
 
     /**
-     * An {@link Analyzer} which chains {@link WhitespaceTokenizer} and {@link AnnotatingTokenFilter} with
+     * An {@link Analyzer} which chains {@link WhitespaceTokenizer} and {@link AnnotatorTokenFilter} with
      * {@link ColorAnnotator}.
      */
     @SuppressWarnings("resource")
@@ -149,7 +148,7 @@ public class AnnotatorTokenFilterExample {
     }
 
     /**
-     * An {@link Analyzer} which chains {@link WhitespaceTokenizer} and {@link AnnotatingTokenFilter} with
+     * An {@link Analyzer} which chains {@link WhitespaceTokenizer} and {@link AnnotatorTokenFilter} with
      * {@link AnimalAnnotator}.
      */
     @SuppressWarnings("resource")

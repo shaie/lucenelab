@@ -48,7 +48,7 @@ import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
-import com.shaie.annots.MultiPositionSpanQuery;
+import com.shaie.annots.MultiPositionSpanTermQuery;
 import com.shaie.annots.filter.PreAnnotatedTokenFilter;
 import com.shaie.utils.IndexUtils;
 
@@ -111,7 +111,7 @@ public class PreAnnotatedTokenFilterExample {
     }
 
     private static void searchForColoredFox(IndexSearcher searcher) throws IOException {
-        final SpanQuery anyColor = new MultiPositionSpanQuery(new Term(COLOR_FIELD, ANY_ANNOTATION_TERM));
+        final SpanQuery anyColor = new MultiPositionSpanTermQuery(new Term(COLOR_FIELD, ANY_ANNOTATION_TERM));
         final SpanQuery colorAsText = new FieldMaskingSpanQuery(anyColor, TEXT_FIELD);
         final SpanQuery fox = new SpanTermQuery(new Term(TEXT_FIELD, "fox"));
         final SpanQuery coloredFox = new SpanNearQuery(new SpanQuery[] { colorAsText, fox }, 0, true);

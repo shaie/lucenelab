@@ -32,19 +32,14 @@ import org.apache.lucene.search.spans.Spans;
 import org.apache.lucene.store.ByteArrayDataInput;
 
 /**
- * A {@link SpanTermQuery} which returns a {@link Spans} whose {@link Spans#startPosition()} and
- * {@link Spans#endPosition()} are read from a payload, while the term's actual position is ignored.
+ * A {@link SpanTermQuery} which returns a {@link Spans} whose {@link Spans#endPosition()} is read from a payload. This
+ * allows to index one term which spans multiple positions.
  */
-public class SpanAnnotationTermQuery extends SpanTermQuery {
+public class MultiPositionSpanTermQuery extends SpanTermQuery {
 
     private final PayloadSpanCollector payloadCollector = new PayloadSpanCollector();
 
-    /**
-     * Construct a {@link SpanAnnotationTermQuery} matching the given term's spans. The term is assumed to have
-     * positions indexed with payload by {@link AnnotatingTokenFilter}, which records the start and end position of this
-     * annotation.
-     */
-    public SpanAnnotationTermQuery(Term term) {
+    public MultiPositionSpanTermQuery(Term term) {
         super(term);
     }
 
@@ -63,7 +58,7 @@ public class SpanAnnotationTermQuery extends SpanTermQuery {
                 final Spans spans = super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));
                 return new Spans(this, getSimScorer(context)) {
 
-                    private int start = -1, end = -1;
+                    private int end = -1;
                     private final ByteArrayDataInput in = new ByteArrayDataInput();
 
                     @Override
@@ -93,7 +88,7 @@ public class SpanAnnotationTermQuery extends SpanTermQuery {
 
                     @Override
                     public int nextDoc() throws IOException {
-                        start = end = -1;
+                        end = -1;
                         return spans.nextDoc();
                     }
 
@@ -107,9 +102,8 @@ public class SpanAnnotationTermQuery extends SpanTermQuery {
                         collect(payloadCollector);
                         final byte[] payload = payloadCollector.getPayloads().iterator().next();
                         in.reset(payload);
-                        start = in.readVInt();
-                        end = in.readVInt() + start;
-                        return start;
+                        end = in.readVInt() + pos;
+                        return pos;
                     }
 
                     @Override
@@ -119,7 +113,7 @@ public class SpanAnnotationTermQuery extends SpanTermQuery {
 
                     @Override
                     public int startPosition() {
-                        return start;
+                        return spans.startPosition();
                     }
 
                     @Override
