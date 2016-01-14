@@ -21,7 +21,7 @@
      this file, see http://wiki.apache.org/solr/SolrConfigXml. 
 -->
 <config>
-  <luceneMatchVersion>5.0.0</luceneMatchVersion>
+  <luceneMatchVersion>LATEST</luceneMatchVersion>
 
   <dataDir>${solr.data.dir:}</dataDir>
 
@@ -38,8 +38,8 @@
 
   <indexConfig>
     <lockType>${solr.lock.type:native}</lockType>
-
-     <infoStream>true</infoStream>
+    <ramBufferSizeMB>100</ramBufferSizeMB>
+    <infoStream>true</infoStream>
   </indexConfig>
 
   <jmx />
