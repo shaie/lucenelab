@@ -20,6 +20,7 @@ import static org.fest.assertions.Assertions.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -32,6 +33,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.cloud.ClusterState;
+import org.apache.solr.common.cloud.DocCollection;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,7 +55,9 @@ public class SplitShardTest {
             Utils.getFileResource("solr/solr.xml"));
 
     private final MiniSolrCloudCluster solrCluster = solrClusterResource.getSolrCluster();
-    private final CloudSolrClient solrClient = new CloudSolrClient(solrClusterResource.getConnectString());
+    private final CloudSolrClient solrClient = new CloudSolrClient.Builder()
+            .withZkHost(solrClusterResource.getConnectString())
+            .build();
     private final CollectionAdminHelper collectionAdminHelper = new CollectionAdminHelper(solrClient);
     private final Random random = new Random();
 
@@ -110,8 +114,8 @@ public class SplitShardTest {
     private void printClusterStatus() {
         final ClusterState clusterState = solrClient.getZkStateReader().getClusterState();
         System.out.println("live nodes: " + clusterState.getLiveNodes());
-        for (final String collection : clusterState.getCollections()) {
-            System.out.println(clusterState.getCollection(collection));
+        for (final Entry<String, DocCollection> collection : clusterState.getCollectionsMap().entrySet()) {
+            System.out.println(collection.getValue());
         }
     }
 
@@ -120,7 +124,7 @@ public class SplitShardTest {
         SolrCloudUtils.waitForAllActive(COLLECTION_NAME, solrClient.getZkStateReader(), WAIT_TIMEOUT_SECONDS);
     }
 
-    private String generateRandomBody(Random random) {
+    private static String generateRandomBody(Random random) {
         final int numWords = random.nextInt(900) + 100;
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < numWords; i++) {
@@ -160,18 +164,17 @@ public class SplitShardTest {
         assertThat(commitResponse.getStatus()).isEqualTo(0);
     }
 
+    @SuppressWarnings("deprecation")
     private void splitShard() throws SolrServerException, IOException {
-        final CollectionAdminRequest.SplitShard splitShard = new CollectionAdminRequest.SplitShard();
-        splitShard.setCollectionName(COLLECTION_NAME);
-        splitShard.setShardName("shard1");
-        splitShard.setAsyncId(REQUEST_ID);
+        final CollectionAdminRequest.SplitShard splitShard = CollectionAdminRequest.splitShard(COLLECTION_NAME)
+                .setShardName("shard1")
+                .setAsyncId(REQUEST_ID);
         final CollectionAdminResponse response = splitShard.process(solrClient);
         System.out.println(response.getResponse());
     }
 
     private void requestStatus() throws SolrServerException, IOException {
-        final CollectionAdminRequest.RequestStatus requestStatus = new CollectionAdminRequest.RequestStatus();
-        requestStatus.setRequestId(REQUEST_ID);
+        final CollectionAdminRequest.RequestStatus requestStatus = CollectionAdminRequest.requestStatus(REQUEST_ID);
         final CollectionAdminResponse response = requestStatus.process(solrClient);
         System.out.println(response.getResponse());
     }

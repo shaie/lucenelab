@@ -64,7 +64,7 @@ public class MiniSolrCloudClusterResource extends ExternalResource {
         return zkServer.getConnectString();
     }
 
-    private TestingServer startZooKeeper(File workDir) {
+    private static TestingServer startZooKeeper(File workDir) {
         try {
             final TestingServer zkServer = new TestingServer(-1, workDir, false);
             zkServer.start();

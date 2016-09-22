@@ -55,7 +55,7 @@ public class ClusterStatusResponse extends CollectionAdminResponse {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Collection> getCollections(NamedList<Object> cluster) {
+    private static Map<String, Collection> getCollections(NamedList<Object> cluster) {
         final Map<String, Collection> collections = Maps.newHashMap();
         for (final Entry<String, Object> collectionEntry : (NamedList<Object>) cluster.get("collections")) {
             final String name = collectionEntry.getKey();
@@ -72,7 +72,7 @@ public class ClusterStatusResponse extends CollectionAdminResponse {
     }
 
     @SuppressWarnings("unchecked")
-    private List<Slice> getSlices(final Map<String, Object> collectionValue) {
+    private static List<Slice> getSlices(final Map<String, Object> collectionValue) {
         final List<Slice> slices = Lists.newArrayList();
         for (final Entry<String, Object> shardEntry : ((Map<String, Object>) collectionValue.get("shards"))
                 .entrySet()) {
@@ -84,7 +84,7 @@ public class ClusterStatusResponse extends CollectionAdminResponse {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Replica> getSliceReplicas(final Map<String, Object> shardValue) {
+    private static Map<String, Replica> getSliceReplicas(final Map<String, Object> shardValue) {
         final Map<String, Replica> shardReplicas = Maps.newHashMap();
         for (final Entry<String, Object> replicaEntry : ((Map<String, Object>) shardValue.get("replicas")).entrySet()) {
             final String replicaName = replicaEntry.getKey();

@@ -58,7 +58,7 @@ public class SolrCloudUtils {
     public static List<String> getCollectionsCreatedWithConfig(CloudSolrClient solrClient, String configName) {
         final List<String> result = Lists.newArrayList();
         final ZkStateReader zkStateReader = solrClient.getZkStateReader();
-        for (final String collection : zkStateReader.getClusterState().getCollections()) {
+        for (final String collection : zkStateReader.getClusterState().getCollectionsMap().keySet()) {
             final String collectionConfigName = getCollectionConfigName(zkStateReader, collection);
             if (configName.equals(collectionConfigName)) {
                 result.add(collection);

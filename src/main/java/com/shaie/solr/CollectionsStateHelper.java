@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.solr.common.cloud.ClusterState;
+import org.apache.solr.common.cloud.DocCollection;
 import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
@@ -40,7 +41,7 @@ public class CollectionsStateHelper {
 
     /** Returns the slices (shards) of a collection. */
     public Collection<Slice> getSlices(String collection) {
-        return getClusterState().getSlices(collection);
+        return getClusterState().getCollection(collection).getSlices();
     }
 
     /** Returns the active replicas of a collection. */
@@ -125,8 +126,8 @@ public class CollectionsStateHelper {
     public List<Replica> getAllNodeReplicas(String nodeName) {
         final List<Replica> replicas = Lists.newArrayList();
         final ClusterState clusterState = getClusterState();
-        for (final String collection : clusterState.getCollections()) {
-            for (final Slice slice : clusterState.getSlices(collection)) {
+        for (final DocCollection collection : clusterState.getCollectionsMap().values()) {
+            for (final Slice slice : collection.getSlices()) {
                 for (final Replica replica : slice.getReplicas()) {
                     if (replica.getNodeName().equals(nodeName)) {
                         replicas.add(replica);
@@ -140,7 +141,7 @@ public class CollectionsStateHelper {
     /** Returns all the replicas of all shards of the specified collection. */
     public List<Replica> getAllCollectionReplicas(String collection) {
         final List<Replica> replicas = Lists.newArrayList();
-        for (final Slice slice : getClusterState().getSlices(collection)) {
+        for (final Slice slice : getSlices(collection)) {
             replicas.addAll(slice.getReplicas());
         }
         return replicas;
@@ -148,7 +149,8 @@ public class CollectionsStateHelper {
 
     /** Returns true if the given node holds a replica of the given shard of the given collection. */
     public boolean isNodeReplicaOfShard(String collectionName, String shardName, String nodeName) {
-        for (final Replica replica : getClusterState().getSlice(collectionName, shardName).getReplicas()) {
+        for (final Replica replica : getClusterState().getCollection(collectionName).getSlice(shardName)
+                .getReplicas()) {
             if (replica.getNodeName().equals(nodeName)) {
                 return true;
             }
@@ -185,15 +187,15 @@ public class CollectionsStateHelper {
     private Map<String, List<ReplicaInfo>> getNodeReplicas() {
         final ClusterState clusterState = getClusterState();
         final Map<String, List<ReplicaInfo>> result = Maps.newHashMap();
-        for (final String collection : clusterState.getCollections()) {
-            for (final Slice slice : clusterState.getSlices(collection)) {
+        for (final DocCollection collection : clusterState.getCollectionsMap().values()) {
+            for (final Slice slice : collection.getSlices()) {
                 for (final Replica replica : slice.getReplicas()) {
                     List<ReplicaInfo> nodeReplicas = result.get(replica.getNodeName());
                     if (nodeReplicas == null) {
                         nodeReplicas = Lists.newArrayList();
                         result.put(replica.getNodeName(), nodeReplicas);
                     }
-                    nodeReplicas.add(new ReplicaInfo(replica, collection, slice.getName()));
+                    nodeReplicas.add(new ReplicaInfo(replica, collection.getName(), slice.getName()));
                 }
             }
         }

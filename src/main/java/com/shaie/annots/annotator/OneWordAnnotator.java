@@ -19,7 +19,7 @@ package com.shaie.annots.annotator;
 import java.util.Arrays;
 import java.util.Objects;
 
-import org.apache.lucene.analysis.util.CharArraySet;
+import org.apache.lucene.analysis.CharArraySet;
 
 /** An {@link Annotator} which accepts single words. */
 public class OneWordAnnotator implements Annotator {

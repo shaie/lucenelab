@@ -18,9 +18,9 @@ package com.shaie.annots.filter;
 
 import java.io.IOException;
 
+import org.apache.lucene.analysis.FilteringTokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.util.FilteringTokenFilter;
 
 import com.shaie.annots.annotator.Annotator;
 

@@ -45,12 +45,12 @@ public class CreateCollectionResponse extends CollectionAdminResponse {
     }
 
     @SuppressWarnings("unchecked")
-    private String getCoreName(Entry<String, Object> entry) {
+    private static String getCoreName(Entry<String, Object> entry) {
         return (String) ((NamedList<Object>) entry.getValue()).get("core");
     }
 
     @SuppressWarnings("unchecked")
-    private NamedList<Object> getSuccessEntry(
+    private static NamedList<Object> getSuccessEntry(
             org.apache.solr.client.solrj.response.CollectionAdminResponse rawResponse) {
         return (NamedList<Object>) rawResponse.getResponse().get("success");
     }

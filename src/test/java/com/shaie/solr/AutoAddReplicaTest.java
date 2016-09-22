@@ -45,7 +45,9 @@ public class AutoAddReplicaTest {
             Utils.getFileResource("solr/solr.xml"));
 
     private final MiniSolrCloudCluster solrCluster = solrClusterResource.getSolrCluster();
-    private final CloudSolrClient solrClient = new CloudSolrClient(solrClusterResource.getConnectString());
+    private final CloudSolrClient solrClient = new CloudSolrClient.Builder()
+            .withZkHost(solrClusterResource.getConnectString())
+            .build();
     private final CollectionAdminHelper collectionAdminHelper = new CollectionAdminHelper(solrClient);
 
     @Before
@@ -188,7 +190,7 @@ public class AutoAddReplicaTest {
         }
     }
 
-    private void sleepSome(long sleepTime) {
+    private static void sleepSome(long sleepTime) {
         try {
             Thread.sleep(sleepTime);
         } catch (final InterruptedException e) {

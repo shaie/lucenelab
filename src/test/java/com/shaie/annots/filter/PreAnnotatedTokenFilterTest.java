@@ -27,6 +27,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
@@ -36,7 +37,6 @@ import org.apache.lucene.analysis.miscellaneous.EmptyTokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.store.ByteArrayDataInput;
 import org.apache.lucene.util.BytesRef;
 import org.junit.Rule;
@@ -44,7 +44,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.ImmutableList;
-import com.shaie.annots.filter.PreAnnotatedTokenFilter;
 
 /** Unit tests for {@link PreAnnotatedTokenFilter}. */
 public class PreAnnotatedTokenFilterTest {
@@ -165,7 +164,7 @@ public class PreAnnotatedTokenFilterTest {
         }
     }
 
-    private void assertTokenInfos(TokenStream ts, TokenInfo... infos) throws IOException {
+    private static void assertTokenInfos(TokenStream ts, TokenInfo... infos) throws IOException {
         ts.reset();
         final CharTermAttribute term = ts.addAttribute(CharTermAttribute.class);
         final PositionIncrementAttribute posIncrAtt = ts.addAttribute(PositionIncrementAttribute.class);

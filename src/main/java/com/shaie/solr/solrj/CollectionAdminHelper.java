@@ -52,11 +52,8 @@ public class CollectionAdminHelper {
         }
 
         try {
-            final CollectionAdminRequest.Create createCollectionRequest = new CollectionAdminRequest.Create();
-            createCollectionRequest.setCollectionName(collectionName);
-            createCollectionRequest.setNumShards(numShards);
-            createCollectionRequest.setReplicationFactor(numReplicas);
-            createCollectionRequest.setConfigName(configName);
+            final CollectionAdminRequest.Create createCollectionRequest =
+                    CollectionAdminRequest.createCollection(collectionName, configName, numShards, numReplicas);
 
             final CollectionAdminResponse response = createCollectionRequest.process(solrClient);
             return new CreateCollectionResponse(response);
@@ -72,8 +69,8 @@ public class CollectionAdminHelper {
         }
 
         try {
-            final CollectionAdminRequest.Delete deleteCollectionRequest = new CollectionAdminRequest.Delete();
-            deleteCollectionRequest.setCollectionName(collectionName);
+            final CollectionAdminRequest.Delete deleteCollectionRequest =
+                    CollectionAdminRequest.deleteCollection(collectionName);
 
             final CollectionAdminResponse response = deleteCollectionRequest.process(solrClient);
             return new DeleteCollectionResponse(response);
@@ -89,10 +86,9 @@ public class CollectionAdminHelper {
         }
 
         try {
-            final CollectionAdminRequest.AddReplica addReplicaRequest = new CollectionAdminRequest.AddReplica();
-            addReplicaRequest.setCollectionName(collectionName);
-            addReplicaRequest.setShardName(shardName);
-            addReplicaRequest.setNode(nodeName);
+            final CollectionAdminRequest.AddReplica addReplicaRequest =
+                    CollectionAdminRequest.addReplicaToShard(collectionName, shardName)
+                            .setNode(nodeName);
             final CollectionAdminResponse response = addReplicaRequest.process(solrClient);
             return new AddReplicaResponse(response);
         } catch (IOException | SolrServerException e) {
@@ -111,11 +107,8 @@ public class CollectionAdminHelper {
 
         try {
             final CollectionAdminRequest.DeleteReplica deleteReplicaRequest =
-                    new CollectionAdminRequest.DeleteReplica();
-            deleteReplicaRequest.setCollectionName(collectionName);
-            deleteReplicaRequest.setShardName(shardName);
-            deleteReplicaRequest.setReplica(replicaName);
-            deleteReplicaRequest.setOnlyIfDown(false);
+                    CollectionAdminRequest.deleteReplica(collectionName, shardName, replicaName)
+                            .setOnlyIfDown(false);
             deleteReplicaRequest.process(solrClient);
         } catch (IOException | SolrServerException e) {
             System.err.println("here");

@@ -47,7 +47,9 @@ public class MiniSolrCloudClusterTest {
             Utils.getFileResource("solr/solr.xml"));
 
     private final MiniSolrCloudCluster solrCluster = solrClusterResource.getSolrCluster();
-    private final CloudSolrClient solrClient = new CloudSolrClient(solrClusterResource.getConnectString());
+    private final CloudSolrClient solrClient = new CloudSolrClient.Builder()
+            .withZkHost(solrClusterResource.getConnectString())
+            .build();
     private final CollectionAdminHelper collectionAdminHelper = new CollectionAdminHelper(solrClient);
 
     @Before

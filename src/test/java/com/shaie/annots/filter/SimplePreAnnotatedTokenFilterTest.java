@@ -25,6 +25,7 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
@@ -33,7 +34,6 @@ import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.miscellaneous.EmptyTokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.util.CharArraySet;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -154,7 +154,7 @@ public class SimplePreAnnotatedTokenFilterTest {
         }
     }
 
-    private void assertTokenInfos(TokenStream ts, TokenInfo... infos) throws IOException {
+    private static void assertTokenInfos(TokenStream ts, TokenInfo... infos) throws IOException {
         ts.reset();
         final CharTermAttribute term = ts.addAttribute(CharTermAttribute.class);
         final PositionIncrementAttribute posIncrAtt = ts.addAttribute(PositionIncrementAttribute.class);

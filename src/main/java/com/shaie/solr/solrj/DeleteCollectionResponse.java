@@ -45,7 +45,7 @@ public class DeleteCollectionResponse extends CollectionAdminResponse {
     }
 
     @SuppressWarnings("unchecked")
-    private NamedList<Object> getSuccessEntry(
+    private static NamedList<Object> getSuccessEntry(
             org.apache.solr.client.solrj.response.CollectionAdminResponse rawResponse) {
         return (NamedList<Object>) rawResponse.getResponse().get("success");
     }

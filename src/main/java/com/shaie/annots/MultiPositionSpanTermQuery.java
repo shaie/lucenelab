@@ -56,7 +56,7 @@ public class MultiPositionSpanTermQuery extends SpanTermQuery {
             @Override
             public Spans getSpans(LeafReaderContext context, Postings requiredPostings) throws IOException {
                 final Spans spans = super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));
-                return new Spans(this, getSimScorer(context)) {
+                return new Spans() {
 
                     private int end = -1;
                     private final ByteArrayDataInput in = new ByteArrayDataInput();

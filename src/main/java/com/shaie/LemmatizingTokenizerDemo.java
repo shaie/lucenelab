@@ -29,6 +29,7 @@ import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.Attribute;
 import org.apache.lucene.util.AttributeImpl;
+import org.apache.lucene.util.AttributeReflector;
 
 import com.google.common.base.Strings;
 
@@ -247,6 +248,12 @@ public class LemmatizingTokenizerDemo {
         @Override
         public void setLemma(String lemma) {
             this.lemma = lemma;
+        }
+
+        @Override
+        public void reflectWith(AttributeReflector reflector) {
+            reflector.reflect(DocRefAttribute.class, "token", token);
+            reflector.reflect(DocRefAttribute.class, "lemma", lemma);
         }
     }
 

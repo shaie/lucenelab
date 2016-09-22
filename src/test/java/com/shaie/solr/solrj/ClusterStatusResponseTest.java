@@ -50,7 +50,9 @@ public class ClusterStatusResponseTest {
             Utils.getFileResource("solr/solr.xml"));
 
     private final MiniSolrCloudCluster solrCluster = solrClusterResource.getSolrCluster();
-    private final CloudSolrClient solrClient = new CloudSolrClient(solrClusterResource.getConnectString());
+    private final CloudSolrClient solrClient = new CloudSolrClient.Builder()
+            .withZkHost(solrClusterResource.getConnectString())
+            .build();
     private final CollectionAdminHelper collectionAdminHelper = new CollectionAdminHelper(solrClient);
 
     @Test
@@ -85,7 +87,7 @@ public class ClusterStatusResponseTest {
         createCollectionAndWaitForRecoveries("collection2", 3, 1);
     }
 
-    private void assertResponseCollection1(final ClusterStatusResponse.Collection collection1) {
+    private static void assertResponseCollection1(final ClusterStatusResponse.Collection collection1) {
         assertThat(collection1.getName()).isEqualTo("collection1");
         assertThat(collection1.getAliases()).containsOnly("both");
         final List<Slice> collection1Slices = collection1.getSlices();
@@ -95,7 +97,7 @@ public class ClusterStatusResponseTest {
         }
     }
 
-    private void assertResponseCollection2(ClusterStatusResponse.Collection collection2) {
+    private static void assertResponseCollection2(ClusterStatusResponse.Collection collection2) {
         assertThat(collection2.getName()).isEqualTo("collection2");
         assertThat(collection2.getAliases()).containsOnly("both");
         final List<Slice> collection1Slices = collection2.getSlices();
@@ -106,18 +108,15 @@ public class ClusterStatusResponseTest {
     }
 
     private void addOverseerRole() throws SolrServerException, IOException {
-        final CollectionAdminRequest.AddRole addRoleRequest = new CollectionAdminRequest.AddRole();
-        addRoleRequest.setRole("overseer");
-        addRoleRequest.setNode(SolrCloudUtils.baseUrlToNodeName(solrCluster.getBaseUrl("node1")));
-        addRoleRequest.process(solrClient);
-        addRoleRequest.setNode(SolrCloudUtils.baseUrlToNodeName(solrCluster.getBaseUrl("node2")));
-        addRoleRequest.process(solrClient);
+        CollectionAdminRequest.addRole(SolrCloudUtils.baseUrlToNodeName(solrCluster.getBaseUrl("node1")), "overseer")
+                .process(solrClient);
+        CollectionAdminRequest.addRole(SolrCloudUtils.baseUrlToNodeName(solrCluster.getBaseUrl("node2")), "overseer")
+                .process(solrClient);
     }
 
     private void createAlias() throws SolrServerException, IOException {
-        final CollectionAdminRequest.CreateAlias createAliasRequest = new CollectionAdminRequest.CreateAlias();
-        createAliasRequest.setAliasedCollections("collection1,collection2");
-        createAliasRequest.setAliasName("both");
+        final CollectionAdminRequest.CreateAlias createAliasRequest =
+                CollectionAdminRequest.createAlias("both", "collection1,collection2");
         createAliasRequest.process(solrClient);
     }
 
