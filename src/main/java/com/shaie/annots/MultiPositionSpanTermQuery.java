@@ -56,6 +56,10 @@ public class MultiPositionSpanTermQuery extends SpanTermQuery {
             @Override
             public Spans getSpans(LeafReaderContext context, Postings requiredPostings) throws IOException {
                 final Spans spans = super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));
+                if (spans == null) { // term is not present in that reader
+                    assert context.reader().docFreq(term) == 0 : "no term exists in reader term=" + term;
+                    return null;
+                }
                 return new Spans() {
 
                     private int end = -1;
