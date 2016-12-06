@@ -48,6 +48,7 @@
     <dependency org="org.apache.lucene" name="lucene-queryparser" rev="&lucene_solr.version;" />
     <dependency org="org.apache.lucene" name="lucene-test-framework" rev="&lucene_solr.version;" />
     <dependency org="org.apache.lucene" name="lucene-suggest" rev="&lucene_solr.version;" />
+    <dependency org="org.apache.lucene" name="lucene-facet" rev="&lucene_solr.version;" />
     <dependency org="org.apache.solr" name="solr-core" rev="&lucene_solr.version;" />
     <dependency org="org.apache.solr" name="solr-solrj" rev="&lucene_solr.version;" />
     <dependency org="org.apache.solr" name="solr-test-framework" rev="&lucene_solr.version;" />
