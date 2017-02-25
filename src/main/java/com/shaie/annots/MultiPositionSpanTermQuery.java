@@ -47,7 +47,7 @@ public class MultiPositionSpanTermQuery extends SpanTermQuery {
     public SpanWeight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
         final TermContext context;
         final IndexReaderContext topContext = searcher.getTopReaderContext();
-        if (termContext == null || termContext.topReaderContext != topContext) {
+        if (termContext == null || termContext.wasBuiltFor(topContext) == false) {
             context = TermContext.build(topContext, term);
         } else {
             context = termContext;
