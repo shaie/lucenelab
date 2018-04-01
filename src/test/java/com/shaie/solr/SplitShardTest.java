@@ -164,11 +164,10 @@ public class SplitShardTest {
         assertThat(commitResponse.getStatus()).isEqualTo(0);
     }
 
-    @SuppressWarnings("deprecation")
     private void splitShard() throws SolrServerException, IOException {
         final CollectionAdminRequest.SplitShard splitShard = CollectionAdminRequest.splitShard(COLLECTION_NAME)
-                .setShardName("shard1")
-                .setAsyncId(REQUEST_ID);
+                .setShardName("shard1");
+        splitShard.setAsyncId(REQUEST_ID);
         final CollectionAdminResponse response = splitShard.process(solrClient);
         System.out.println(response.getResponse());
     }

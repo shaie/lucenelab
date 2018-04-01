@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.ZkClientClusterStateProvider;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -46,8 +47,9 @@ public class SolrCloudUtils {
 
     /** Uploads configuration files to ZooKeeper. */
     public static void uploadConfigToZk(CloudSolrClient solrClient, String configName, Path confDir) {
-        try {
-            solrClient.uploadConfig(confDir, configName);
+        try (final ZkClientClusterStateProvider zkClientClusterStateProvider =
+                new ZkClientClusterStateProvider(solrClient.getZkStateReader())) {
+            zkClientClusterStateProvider.uploadConfig(confDir, configName);
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }

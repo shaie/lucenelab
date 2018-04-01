@@ -18,7 +18,11 @@
   under the License.
 -->
 <!DOCTYPE ivy-module [
+<<<<<<< HEAD
     <!ENTITY lucene_solr.version "6.4.1">
+=======
+    <!ENTITY lucene_solr.version "7.2.0">
+>>>>>>> Upgrade to Lucene 7.2.0
 ]>
 <ivy-module version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">

@@ -18,6 +18,7 @@ package com.shaie.annots;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReaderContext;
@@ -44,15 +45,16 @@ public class MultiPositionSpanTermQuery extends SpanTermQuery {
     }
 
     @Override
-    public SpanWeight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
-        final TermContext context;
+    public SpanWeight createWeight(IndexSearcher searcher, boolean needsScores, float boost) throws IOException {
         final IndexReaderContext topContext = searcher.getTopReaderContext();
+        final TermContext context;
         if (termContext == null || termContext.wasBuiltFor(topContext) == false) {
             context = TermContext.build(topContext, term);
         } else {
             context = termContext;
         }
-        return new SpanTermWeight(context, searcher, needsScores ? Collections.singletonMap(term, context) : null) {
+        final Map<Term, TermContext> terms = needsScores ? Collections.singletonMap(term, context) : null;
+        return new SpanTermWeight(context, searcher, terms, boost) {
             @Override
             public Spans getSpans(LeafReaderContext context, Postings requiredPostings) throws IOException {
                 final Spans spans = super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));

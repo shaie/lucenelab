@@ -21,7 +21,7 @@ import java.io.StringReader;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
-import org.apache.lucene.analysis.synonym.SynonymFilter;
+import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
@@ -42,7 +42,7 @@ public class SynonymFilterExample {
         addSynonym("dark sea", "color", builder);
         addSynonym("sea green", "color", builder);
         final SynonymMap synMap = builder.build();
-        final TokenStream ts = new SynonymFilter(tok, synMap, true);
+        final TokenStream ts = new SynonymGraphFilter(tok, synMap, true);
 
         final CharTermAttribute termAtt = ts.addAttribute(CharTermAttribute.class);
         final PositionIncrementAttribute posIncrAtt = ts.addAttribute(PositionIncrementAttribute.class);
