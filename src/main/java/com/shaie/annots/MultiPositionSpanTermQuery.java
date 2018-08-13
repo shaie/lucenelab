@@ -22,23 +22,23 @@ import java.util.Map;
 
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermContext;
-import org.apache.lucene.payloads.PayloadSpanCollector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.spans.SpanCollector;
 import org.apache.lucene.search.spans.SpanTermQuery;
 import org.apache.lucene.search.spans.SpanWeight;
 import org.apache.lucene.search.spans.Spans;
+import org.apache.lucene.search.spans.TermSpans;
 import org.apache.lucene.store.ByteArrayDataInput;
+import org.apache.lucene.util.BytesRef;
 
 /**
  * A {@link SpanTermQuery} which returns a {@link Spans} whose {@link Spans#endPosition()} is read from a payload. This
  * allows to index one term which spans multiple positions.
  */
 public class MultiPositionSpanTermQuery extends SpanTermQuery {
-
-    private final PayloadSpanCollector payloadCollector = new PayloadSpanCollector();
 
     public MultiPositionSpanTermQuery(Term term) {
         super(term);
@@ -57,18 +57,20 @@ public class MultiPositionSpanTermQuery extends SpanTermQuery {
         return new SpanTermWeight(context, searcher, terms, boost) {
             @Override
             public Spans getSpans(LeafReaderContext context, Postings requiredPostings) throws IOException {
-                final Spans spans = super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));
+                final TermSpans spans =
+                        (TermSpans) super.getSpans(context, requiredPostings.atLeast(Postings.PAYLOADS));
                 if (spans == null) { // term is not present in that reader
                     assert context.reader().docFreq(term) == 0 : "no term exists in reader term=" + term;
                     return null;
                 }
                 return new Spans() {
 
+                    private final PositionSpansCollector payloadCollector = new PositionSpansCollector();
                     private int end = -1;
-                    private final ByteArrayDataInput in = new ByteArrayDataInput();
 
                     @Override
                     public int advance(int target) throws IOException {
+                        end = -1;
                         return spans.advance(target);
                     }
 
@@ -102,13 +104,11 @@ public class MultiPositionSpanTermQuery extends SpanTermQuery {
                     public int nextStartPosition() throws IOException {
                         final int pos = spans.nextStartPosition();
                         if (pos == NO_MORE_POSITIONS) {
+                            end = NO_MORE_POSITIONS;
                             return NO_MORE_POSITIONS;
                         }
-                        payloadCollector.reset();
-                        collect(payloadCollector);
-                        final byte[] payload = payloadCollector.getPayloads().iterator().next();
-                        in.reset(payload);
-                        end = in.readVInt() + pos;
+                        spans.collect(payloadCollector);
+                        end = payloadCollector.payloadValue + pos;
                         return pos;
                     }
 
@@ -129,6 +129,29 @@ public class MultiPositionSpanTermQuery extends SpanTermQuery {
                 };
             }
         };
+    }
+
+    @Override
+    public String toString(String field) {
+        return "mspans(" + super.toString(field) + ")";
+    }
+
+    private static class PositionSpansCollector implements SpanCollector {
+
+        private final ByteArrayDataInput in = new ByteArrayDataInput();
+        int payloadValue = -1;
+
+        @Override
+        public void collectLeaf(PostingsEnum postings, int position, Term term) throws IOException {
+            final BytesRef payload = postings.getPayload();
+            in.reset(payload.bytes, payload.offset, payload.length);
+            payloadValue = in.readVInt();
+        }
+
+        @Override
+        public void reset() {
+            payloadValue = -1;
+        }
     }
 
 }
